@@ -22,6 +22,7 @@ import (
 	"volcano.sh/volcano/pkg/scheduler/plugins/conformance"
 	"volcano.sh/volcano/pkg/scheduler/plugins/drf"
 	"volcano.sh/volcano/pkg/scheduler/plugins/gang"
+	"volcano.sh/volcano/pkg/scheduler/plugins/lease"
 	"volcano.sh/volcano/pkg/scheduler/plugins/nodeorder"
 	"volcano.sh/volcano/pkg/scheduler/plugins/predicates"
 	"volcano.sh/volcano/pkg/scheduler/plugins/priority"
@@ -39,6 +40,8 @@ func init() {
 	framework.RegisterPluginBuilder(conformance.PluginName, conformance.New)
 	framework.RegisterPluginBuilder(binpack.PluginName, binpack.New)
 	framework.RegisterPluginBuilder(reservation.PluginName, reservation.New)
+
+	framework.RegisterPluginBuilder(lease.PluginName, lease.New)
 
 	// Plugins for Queues
 	framework.RegisterPluginBuilder(proportion.PluginName, proportion.New)
