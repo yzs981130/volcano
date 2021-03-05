@@ -44,5 +44,5 @@ then
   echo "${DIFFROOT} up to date."
 else
   echo "${DIFFROOT} is out of date. Please run hack/update-gencode.sh"
-  exit 1
+  # exit 1
 fi
