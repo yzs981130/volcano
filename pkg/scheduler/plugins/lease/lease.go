@@ -43,7 +43,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		lv := l.(*api.JobInfo)
 		rv := r.(*api.JobInfo)
 
-		klog.V(4).Infof("Lease JobOrderFn: <%v/%v> priority: %d, <%v/%v> priority: %d",
+		klog.V(4).Infof("Lease JobOrderFn: <%v/%v> priority: %f, <%v/%v> priority: %f",
 			lv.Namespace, lv.Name, lp.jobAttrs[lv.UID].fairness, rv.Namespace, rv.Name, lp.jobAttrs[rv.UID].fairness)
 
 		if lv.Priority > rv.Priority {
