@@ -23,9 +23,9 @@ type leasePlugin struct {
 }
 
 type leaseAttr struct {
-	utilized	float64
-	deserved	float64
-	fairness	float64
+	utilized float64
+	deserved float64
+	fairness float64
 }
 
 // New return priority plugin

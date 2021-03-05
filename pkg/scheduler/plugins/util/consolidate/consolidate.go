@@ -21,7 +21,7 @@ var _ framework.ScorePlugin = &Consolidate{}
 
 const (
 	// Name is the name of the plugin used in the plugin registry and configurations.
-	Name = "Consolidate"
+	Name        = "Consolidate"
 	scaledRatio = 100
 )
 
@@ -48,7 +48,7 @@ func (pl *Consolidate) Score(ctx context.Context, state *framework.CycleState, p
 	nodeRequestedGPU := nodeInfo.RequestedResource().ScalarResources[api.GPUResourceName]
 
 	// TODO: check if can place pod on this node, no need to do possibly
-	if gpuDemand + nodeRequestedGPU < nodeAllocatableGPU {
+	if gpuDemand+nodeRequestedGPU < nodeAllocatableGPU {
 		score = (gpuDemand + nodeRequestedGPU) * scaledRatio / nodeAllocatableGPU
 	}
 	return score, nil
