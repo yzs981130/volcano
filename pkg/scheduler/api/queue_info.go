@@ -41,6 +41,9 @@ type QueueInfo struct {
 	// path from the root to the node itself.
 	Hierarchy string
 
+	// QuotaRatio indicates static setting of quota ratio of each VC
+	QuotaRatio	float64
+
 	Queue *scheduling.Queue
 }
 
@@ -53,6 +56,8 @@ func NewQueueInfo(queue *scheduling.Queue) *QueueInfo {
 		Weight:    queue.Spec.Weight,
 		Hierarchy: queue.Annotations[v1beta1.KubeHierarchyAnnotationKey],
 		Weights:   queue.Annotations[v1beta1.KubeHierarchyWeightAnnotationKey],
+
+		QuotaRatio: queue.Spec.QuotaRatio,
 
 		Queue: queue,
 	}

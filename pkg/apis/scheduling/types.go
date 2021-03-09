@@ -265,6 +265,9 @@ type QueueSpec struct {
 	State QueueState
 	// Reclaimable indicate whether the queue can be reclaimed by other queue
 	Reclaimable *bool
+
+	// QuotaRatio indicates static setting of quota ratio of each VC
+	QuotaRatio	float64
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
