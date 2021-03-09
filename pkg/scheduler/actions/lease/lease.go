@@ -43,6 +43,8 @@ func (la *Action) Execute(ssn *framework.Session) {
 	// 5. use predicateFn to filter out node that T can not be allocated on.
 	// 6. use ssn.NodeOrderFn to judge the best node and assign it to T
 
+	// We will have only one namespace and multi queues for multi VCs(users)
+	// Every queue will have its deserved/allocated
 	namespaces := util.NewPriorityQueue(ssn.NamespaceOrderFn)
 
 	// jobsMap is map[api.NamespaceName]map[api.QueueID]PriorityQueue(*api.JobInfo)
@@ -109,6 +111,16 @@ func (la *Action) Execute(ssn *framework.Session) {
 		return ssn.PredicateFn(task, node)
 	}
 
+	// TODO: build up queue attr like plugin proportion
+	// We need calculate deserved/allocated of every queue to utilize user-level fairness
+	// Get job information and resource information directly from ssn.Jobs and ssn.Nodes to build queue
+	// After building up queue, use ssn.AddQueueOrderFn to utilize user-level fairness
+
+	// TODO: decide queue quota
+	// We need simulate job scheduling and divide free capacity to different queue
+	// Use ssn.AddOverusedFn to support quota settings of each queue
+	// Should be similar with actual scheduling
+
 	// To pick <namespace, queue> tuple for job, we choose to pick namespace firstly.
 	// Because we believe that number of queues would less than namespaces in most case.
 	// And, this action would make the resource usage among namespace balanced.
@@ -128,6 +140,15 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// But at least PriorityQueue could not be used here,
 		// because the allocation of job would change the priority of queue among all namespaces,
 		// and the PriorityQueue have no ability to update priority for a special queue.
+
+		// TODO: Do scheduling on queue(pending jobs in queue v.s. queue.quota)
+		// select job by jobOrderFn, with resource restriction of queue.quota
+
+
+		// TODO: extra logic for lease renewal job
+		// Do scheduling twice with renewal job and without job
+		// different logic in committing scheduling results according to job type
+
 		var queue *api.QueueInfo
 		for queueID := range queueInNamespace {
 			currentQueue := ssn.Queues[queueID]
