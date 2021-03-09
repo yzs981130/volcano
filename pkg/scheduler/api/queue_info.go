@@ -42,7 +42,7 @@ type QueueInfo struct {
 	Hierarchy string
 
 	// QuotaRatio indicates static setting of quota ratio of each VC
-	QuotaRatio	float64
+	QuotaRatio float64
 
 	Queue *scheduling.Queue
 }

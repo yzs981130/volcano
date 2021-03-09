@@ -144,7 +144,6 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// TODO: Do scheduling on queue(pending jobs in queue v.s. queue.quota)
 		// select job by jobOrderFn, with resource restriction of queue.quota
 
-
 		// TODO: extra logic for lease renewal job
 		// Do scheduling twice with renewal job and without job
 		// different logic in committing scheduling results according to job type
