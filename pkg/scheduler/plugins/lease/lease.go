@@ -22,7 +22,7 @@ type leasePlugin struct {
 	// Arguments given for the plugin
 	pluginArguments framework.Arguments
 	// Key is Job ID
-	jobAttrs map[api.JobID]*leaseAttr
+	jobAttrs map[api.JobID]*jobAttr
 
 	queueOpts     map[api.QueueID]*queueAttr
 	totalResource *api.Resource
@@ -44,7 +44,7 @@ type queueAttr struct {
 	allocated *api.Resource
 }
 
-type leaseAttr struct {
+type jobAttr struct {
 	utilized float64
 	deserved float64
 	fairness float64
@@ -54,7 +54,7 @@ type leaseAttr struct {
 func New(arguments framework.Arguments) framework.Plugin {
 	return &leasePlugin{
 		pluginArguments: arguments,
-		jobAttrs:        map[api.JobID]*leaseAttr{},
+		jobAttrs:        map[api.JobID]*jobAttr{},
 		queueOpts:       map[api.QueueID]*queueAttr{},
 		totalResource:   api.EmptyResource(),
 	}
@@ -268,7 +268,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 
 func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 	// clear jobAttr
-	lp.jobAttrs = map[api.JobID]*leaseAttr{}
+	lp.jobAttrs = map[api.JobID]*jobAttr{}
 	// clear queueOpts
 	lp.queueOpts = map[api.QueueID]*queueAttr{}
 	lp.totalResource = api.EmptyResource()
