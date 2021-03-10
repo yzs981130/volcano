@@ -16,7 +16,7 @@ import (
 // PluginName indicates name of volcano scheduler plugin.
 const PluginName = "lease"
 
-const leastTerm = 900
+const leaseTerm = 900
 
 type leasePlugin struct {
 	// Arguments given for the plugin
@@ -67,6 +67,19 @@ func (lp *leasePlugin) Name() string {
 func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	// Job selection func
 	// TODO: update jobAttrs.fairness
+	for _, job := range ssn.Jobs {
+		if !isFinishedJob(job) {
+			if _, found := lp.jobAttrs[job.UID]; !found {
+				// TODO: get job utilized & deserved from job.PodGroup
+				attr := &jobAttr{
+					utilized: 0,
+					deserved: 0,
+				}
+				lp.updateJobFairness(attr)
+				lp.jobAttrs[job.UID] = attr
+			}
+		}
+	}
 
 	// use lp.jobAttrs[lv.UID].fairness for job selection
 	jobOrderFn := func(l, r interface{}) int {
@@ -109,11 +122,13 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			}
 			// update queue information
 			job := ssn.Jobs[event.Task.Job]
-			attr := lp.queueOpts[job.Queue]
-			attr.allocated.Add(event.Task.Resreq)
+			qAttr, jAttr := lp.queueOpts[job.Queue], lp.jobAttrs[job.UID]
+			qAttr.allocated.Add(event.Task.Resreq)
 			// TODO: should update user fairness?
-			attr.utilized += getJobGPUReq(job) * leastTerm
-			lp.updateUserFairness(attr)
+			qAttr.utilized += getJobGPUReq(job) * leaseTerm
+			jAttr.utilized += getJobGPUReq(job) * leaseTerm
+			lp.updateUserFairness(qAttr)
+			lp.updateJobFairness(jAttr)
 		},
 		DeallocateFunc: func(event *framework.Event) {
 			pod := pl.UpdateTask(event.Task, "")
@@ -131,11 +146,13 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 				}
 			}
 			job := ssn.Jobs[event.Task.Job]
-			attr := lp.queueOpts[job.Queue]
-			attr.allocated.Sub(event.Task.Resreq)
+			qAttr, jAttr := lp.queueOpts[job.Queue], lp.jobAttrs[job.UID]
+			qAttr.allocated.Sub(event.Task.Resreq)
 			// TODO: should update user fairness?
-			attr.utilized -= getJobGPUReq(job) * leastTerm
-			lp.updateUserFairness(attr)
+			qAttr.utilized -= getJobGPUReq(job) * leaseTerm
+			jAttr.utilized -= getJobGPUReq(job) * leaseTerm
+			lp.updateUserFairness(qAttr)
+			lp.updateJobFairness(jAttr)
 		},
 	})
 
@@ -234,7 +251,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			lp.queueOpts[user].newQuota += jobGPUReq
 			totalFreeGPU -= jobGPUReq
 			// update user related information
-			lp.queueOpts[user].utilized += jobGPUReq * leastTerm
+			lp.queueOpts[user].utilized += jobGPUReq * leaseTerm
 			lp.queueOpts[user].uDivideW = lp.queueOpts[user].utilized / lp.queueOpts[user].weighted
 			lp.queueOpts[user].utilizedQuotaPercent = lp.queueOpts[user].newQuota / lp.queueOpts[user].userQuota
 			break
@@ -284,6 +301,17 @@ func isPendingJob(job *api.JobInfo) bool {
 	return true
 }
 
+// to skip finished job in ssn.Jobs
+// TODO: check
+func isFinishedJob(job *api.JobInfo) bool {
+	for status := range job.TaskStatusIndex {
+		if !(status == api.Succeeded || status == api.Failed) {
+			return false
+		}
+	}
+	return true
+}
+
 func getJobGPUReq(job *api.JobInfo) float64 {
 	var cnt float64
 	for _, task := range job.Tasks {
@@ -317,4 +345,12 @@ func (lp *leasePlugin) selectUser() api.QueueID {
 
 func (lp *leasePlugin) updateUserFairness(attr *queueAttr) {
 	attr.uDivideW = attr.utilized / attr.weighted
+}
+
+func (lp *leasePlugin) updateJobFairness(attr *jobAttr) {
+	if attr.deserved == 0 {
+		attr.fairness = 1
+	} else {
+		attr.fairness = attr.utilized / attr.deserved
+	}
 }
