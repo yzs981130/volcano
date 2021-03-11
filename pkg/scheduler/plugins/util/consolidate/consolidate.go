@@ -43,9 +43,14 @@ func (pl *Consolidate) Score(ctx context.Context, state *framework.CycleState, p
 	}
 
 	var score int64
+	var nodeAllocatableGPU, nodeRequestedGPU int64
 	gpuDemand := util.GetPodTotalGPUReq(pod)
-	nodeAllocatableGPU := nodeInfo.AllocatableResource().ScalarResources[api.GPUResourceName]
-	nodeRequestedGPU := nodeInfo.RequestedResource().ScalarResources[api.GPUResourceName]
+	if c, exist := nodeInfo.AllocatableResource().ScalarResources[api.GPUResourceName]; exist {
+		nodeAllocatableGPU = c
+	}
+	if c, exist := nodeInfo.RequestedResource().ScalarResources[api.GPUResourceName]; exist {
+		nodeRequestedGPU = c
+	}
 
 	// TODO: check if can place pod on this node, no need to do possibly
 	if gpuDemand+nodeRequestedGPU < nodeAllocatableGPU {
