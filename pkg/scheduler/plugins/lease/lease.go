@@ -122,13 +122,18 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			}
 			// update queue information
 			job := ssn.Jobs[event.Task.Job]
-			qAttr, jAttr := lp.queueOpts[job.Queue], lp.jobAttrs[job.UID]
+			qAttr := lp.queueOpts[job.Queue]
 			qAttr.allocated.Add(event.Task.Resreq)
-			// TODO: should update user fairness?
-			qAttr.utilized += getJobGPUReq(job) * leaseTerm
-			jAttr.utilized += getJobGPUReq(job) * leaseTerm
-			lp.updateUserFairness(qAttr)
-			lp.updateJobFairness(jAttr)
+			// We need AllocateJobFunc and do the following update to queueAttr and jobAttr in plugin
+			// For simplicity, check if the task allocation is the last allocation
+			// if true, the job is allocated, update job fairness and queue fairness (like dispatchJob)
+			if isJobLastAllocation(job) {
+				jAttr := lp.jobAttrs[job.UID]
+				qAttr.utilized += getJobGPUReq(job) * leaseTerm
+				jAttr.utilized += getJobGPUReq(job) * leaseTerm
+				lp.updateUserFairness(qAttr)
+				lp.updateJobFairness(jAttr)
+			}
 		},
 		DeallocateFunc: func(event *framework.Event) {
 			pod := pl.UpdateTask(event.Task, "")
@@ -145,14 +150,12 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 					klog.V(4).Infof("node order, update pod %s/%s deallocate from node [%s]", pod.Namespace, pod.Name, nodeName)
 				}
 			}
+			// We should only consider user quota usage in every task deallocate
+			// Task de-allocation should only happen under session discard
+			// Job fairness should never be updated because there is no job allocation
 			job := ssn.Jobs[event.Task.Job]
-			qAttr, jAttr := lp.queueOpts[job.Queue], lp.jobAttrs[job.UID]
+			qAttr := lp.queueOpts[job.Queue]
 			qAttr.allocated.Sub(event.Task.Resreq)
-			// TODO: should update user fairness?
-			qAttr.utilized -= getJobGPUReq(job) * leaseTerm
-			jAttr.utilized -= getJobGPUReq(job) * leaseTerm
-			lp.updateUserFairness(qAttr)
-			lp.updateJobFairness(jAttr)
 		},
 	})
 
@@ -353,4 +356,16 @@ func (lp *leasePlugin) updateJobFairness(attr *jobAttr) {
 	} else {
 		attr.fairness = attr.utilized / attr.deserved
 	}
+}
+
+func isJobLastAllocation(job *api.JobInfo) bool {
+	allocatedStatus := func(s api.TaskStatus) bool {
+		return api.AllocatedStatus(s) || s == api.Succeeded
+	}
+	for status := range job.TaskStatusIndex {
+		if !allocatedStatus(status) {
+			return false
+		}
+	}
+	return true
 }
