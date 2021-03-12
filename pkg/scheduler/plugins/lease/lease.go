@@ -161,7 +161,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	})
 
 	nodeOrderFn := func(task *api.TaskInfo, node *api.NodeInfo) (float64, error) {
-		p, _ := consolidate.New(nil, handle)
+		p, _ := consolidate.New(nil, handle, ssn)
 		cp := p.(*consolidate.Consolidate)
 		score, status := cp.Score(context.TODO(), nil, task.Pod, node.Name)
 		if !status.IsSuccess() {

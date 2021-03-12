@@ -2,8 +2,8 @@ package consolidate
 
 import (
 	"context"
-	"fmt"
 	"volcano.sh/volcano/pkg/scheduler/api"
+	schedulerframework "volcano.sh/volcano/pkg/scheduler/framework"
 	"volcano.sh/volcano/pkg/scheduler/plugins/util"
 
 	v1 "k8s.io/api/core/v1"
@@ -15,6 +15,7 @@ import (
 // Consolidate is a plugin that checks if a pod node selector matches the node label.
 type Consolidate struct {
 	handle framework.FrameworkHandle
+	ssn    *schedulerframework.Session
 }
 
 var _ framework.ScorePlugin = &Consolidate{}
@@ -32,29 +33,32 @@ func (pl *Consolidate) Name() string {
 
 // Score invoked at the Score extension point.
 func (pl *Consolidate) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
-	nodeInfo, err := pl.handle.SnapshotSharedLister().NodeInfos().Get(nodeName)
-	if err != nil {
-		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("getting node %q from Snapshot: %v", nodeName, err))
+	// get node from ssn.Nodes
+	var node *api.NodeInfo
+	for _, n := range pl.ssn.Nodes {
+		if n.Name == nodeName {
+			node = n
+		}
 	}
-
-	node := nodeInfo.Node()
+	// never happens
 	if node == nil {
-		return 0, framework.NewStatus(framework.Error, fmt.Sprintf("getting node %q from Snapshot: %v", nodeName, err))
+		panic("no node in ssn.Node in prioritize")
 	}
 
 	var score int64
-	var nodeAllocatableGPU, nodeRequestedGPU int64
-	gpuDemand := util.GetPodTotalGPUReq(pod)
-	if c, exist := nodeInfo.AllocatableResource().ScalarResources[api.GPUResourceName]; exist {
+	var nodeAllocatableGPU, nodeRequestedGPU float64
+	gpuDemand := float64(util.GetPodTotalGPUReq(pod))
+	if c, exist := node.Capability.ScalarResources[api.GPUResourceName]; exist {
 		nodeAllocatableGPU = c
 	}
-	if c, exist := nodeInfo.RequestedResource().ScalarResources[api.GPUResourceName]; exist {
-		nodeRequestedGPU = c
+	if c, exist := node.Allocatable.ScalarResources[api.GPUResourceName]; exist {
+		nodeRequestedGPU = nodeAllocatableGPU - c
 	}
 
 	// TODO: check if can place pod on this node, no need to do possibly
+	// TODO: check gpuDemand true value
 	if gpuDemand+nodeRequestedGPU < nodeAllocatableGPU {
-		score = (gpuDemand + nodeRequestedGPU) * scaledRatio / nodeAllocatableGPU
+		score = int64((gpuDemand + nodeRequestedGPU) * scaledRatio / nodeAllocatableGPU)
 	}
 	return score, nil
 }
@@ -70,6 +74,9 @@ func (pl *Consolidate) ScoreExtensions() framework.ScoreExtensions {
 }
 
 // New initializes a new plugin and returns it.
-func New(_ *runtime.Unknown, h framework.FrameworkHandle) (framework.Plugin, error) {
-	return &Consolidate{handle: h}, nil
+func New(_ *runtime.Unknown, h framework.FrameworkHandle, s *schedulerframework.Session) (framework.Plugin, error) {
+	return &Consolidate{
+		handle: h,
+		ssn: s,
+	}, nil
 }
