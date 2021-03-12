@@ -92,3 +92,21 @@ func (pq *priorityQueue) Pop() interface{} {
 	(*pq).items = old[0 : n-1]
 	return item
 }
+
+// Filter returns a new priority queue with elements all meets filterFn
+func (q *PriorityQueue) Filter(filterFn ...func(interface{}) bool) *PriorityQueue {
+	r := NewPriorityQueue(q.queue.lessFn)
+	for _, e := range q.queue.items {
+		ef := true
+		for _, fn := range filterFn {
+			if !fn(e) {
+				ef = false
+				break
+			}
+		}
+		if ef {
+			r.Push(e)
+		}
+	}
+	return r
+}
