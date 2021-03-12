@@ -5,25 +5,14 @@ import (
 	"volcano.sh/volcano/pkg/apis/scheduling"
 	"volcano.sh/volcano/pkg/scheduler/api"
 	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/metrics"
 	"volcano.sh/volcano/pkg/scheduler/util"
 )
-
-var targetJob = util.Reservation.TargetJob
 
 type Action struct{}
 
 func New() *Action {
 	return &Action{}
 }
-
-const (
-	userFairnessFlag = "user-fairness"
-)
-
-var (
-	defaultUserFairnessFlag = true
-)
 
 func (la *Action) Name() string {
 	return "lease"
@@ -35,7 +24,7 @@ func (la *Action) Execute(ssn *framework.Session) {
 	klog.V(3).Infof("Enter Lease ...")
 	defer klog.V(3).Infof("Leaving Lease ...")
 
-	// the allocation for pod may have many stages
+	// the conventional allocation for pod may have many stages
 	// 1. pick a namespace named N (using ssn.NamespaceOrderFn)
 	// 2. pick a queue named Q from N (using ssn.QueueOrderFn)
 	// 3. pick a job named J from Q (using ssn.JobOrderFn)
@@ -45,11 +34,17 @@ func (la *Action) Execute(ssn *framework.Session) {
 
 	// We will have only one namespace and multi queues for multi VCs(users)
 	// Every queue will have its deserved/allocated
+	// Even though we know that there is always single namespace
+	// We pretend that there might be in the future, as if someone will use it
 	namespaces := util.NewPriorityQueue(ssn.NamespaceOrderFn)
 
 	// jobsMap is map[api.NamespaceName]map[api.QueueID]PriorityQueue(*api.JobInfo)
 	// used to find job with highest priority in given queue and namespace
+	// add job into jobsMap & queueMap
 	jobsMap := map[api.NamespaceName]map[api.QueueID]*util.PriorityQueue{}
+
+	var renewingJobList []*api.JobInfo
+	renewingJobMap := make(map[*api.JobInfo]struct{})
 
 	for _, job := range ssn.Jobs {
 		if job.PodGroup.Status.Phase == scheduling.PodGroupPending {
@@ -83,25 +78,19 @@ func (la *Action) Execute(ssn *framework.Session) {
 
 		klog.V(4).Infof("Added Job <%s/%s> into Queue <%s>", job.Namespace, job.Name, job.Queue)
 		jobs.Push(job)
+
+		// store all lease renewing job
+		// use clone to avoid affecting latter status
+		if isJobRenewing(job) {
+			renewingJobList = append(renewingJobList, job.Clone())
+			renewingJobMap[job] = struct{}{}
+		}
 	}
 
 	klog.V(3).Infof("Try to allocate resource to %d Namespaces", len(jobsMap))
 
-	pendingTasks := map[api.JobID]*util.PriorityQueue{}
-
 	allNodes := util.GetNodeList(ssn.Nodes)
-	unlockedNodes := allNodes
-	if targetJob != nil && len(util.Reservation.LockedNodes) != 0 {
-		unlockedNodes = unlockedNodes[0:0]
-		for _, node := range allNodes {
-			if _, exist := util.Reservation.LockedNodes[node.Name]; !exist {
-				unlockedNodes = append(unlockedNodes, node)
-			}
-		}
-	}
-	for _, unlockedNode := range unlockedNodes {
-		klog.V(4).Infof("unlockedNode ID: %s, Name: %s", unlockedNode.Node.UID, unlockedNode.Node.Name)
-	}
+
 	predicateFn := func(task *api.TaskInfo, node *api.NodeInfo) error {
 		// Check for Resource Predicate
 		if !task.InitResreq.LessEqual(node.FutureIdle()) {
@@ -137,128 +126,53 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// Do scheduling twice with renewal job and without job
 		// different logic in committing scheduling results according to job type
 
-		var queue *api.QueueInfo
-		for queueID := range queueInNamespace {
-			currentQueue := ssn.Queues[queueID]
-			if ssn.Overused(currentQueue) {
-				klog.V(3).Infof("Namespace <%s> Queue <%s> is overused, ignore it.", namespace, currentQueue.Name)
-				delete(queueInNamespace, queueID)
-				continue
-			}
+		// first scheduling begins
+		// job: pending + lease renewing
+		// resource: free capacity + lease renewing job
 
-			if queue == nil || ssn.QueueOrderFn(currentQueue, queue) {
-				queue = currentQueue
-			}
+		// snapshot current resource and job status
+		ssn.Snapshot()
+		// set resource occupied by renewing job to free
+		for _, job := range renewingJobList {
+			reclaimJobResource(ssn, job)
 		}
+		allocatedJobList := la.scheduling(ssn, queueInNamespace, allNodes, predicateFn, renewalFilter)
+		// restore former resource and job status
+		// TODO: restore queue status in plugin
+		ssn.RestoreLastSnapshot()
+		// first scheduling ends
 
-		if queue == nil {
-			klog.V(3).Infof("Namespace <%s> have no queue, skip it", namespace)
-			continue
-		}
+		// second scheduling begins
+		// job: pending job
+		// resource: free capacity
+		allocatedJobList2 := la.scheduling(ssn, queueInNamespace, allNodes, predicateFn, pendingFilter)
+		// second scheduling ends
 
-		klog.V(3).Infof("Try to allocate resource to Jobs in Namespace <%s> Queue <%v>", namespace, queue.Name)
-
-		jobs, found := queueInNamespace[queue.UID]
-		if !found || jobs.Empty() {
-			klog.V(4).Infof("Can not find jobs for queue %s.", queue.Name)
-			continue
-		}
-
-		job := jobs.Pop().(*api.JobInfo)
-		var nodes []*api.NodeInfo
-		if targetJob != nil && job.UID == targetJob.UID {
-			klog.V(4).Infof("Try to allocate resource to target job: %s", job.Name)
-			nodes = allNodes
-		} else {
-			nodes = unlockedNodes
-		}
-		if _, found = pendingTasks[job.UID]; !found {
-			tasks := util.NewPriorityQueue(ssn.TaskOrderFn)
-			for _, task := range job.TaskStatusIndex[api.Pending] {
-				// Skip BestEffort task in 'allocate' action.
-				if task.Resreq.IsEmpty() {
-					klog.V(4).Infof("Task <%v/%v> is BestEffort task, skip it.",
-						task.Namespace, task.Name)
-					continue
-				}
-
-				tasks.Push(task)
-			}
-			pendingTasks[job.UID] = tasks
-		}
-		tasks := pendingTasks[job.UID]
-
-		klog.V(3).Infof("Try to allocate resource to %d tasks of Job <%v/%v>",
-			tasks.Len(), job.Namespace, job.Name)
-
+		// collect scheduling result
 		stmt := framework.NewStatement(ssn)
-
-		for !tasks.Empty() {
-			task := tasks.Pop().(*api.TaskInfo)
-
-			klog.V(3).Infof("There are <%d> nodes for Job <%v/%v>", len(nodes), job.Namespace, job.Name)
-
-			predicateNodes, fitErrors := util.PredicateNodes(task, nodes, predicateFn)
-			if len(predicateNodes) == 0 {
-				job.NodesFitErrors[task.UID] = fitErrors
-				break
+		// for all lease renewing job, if in allocatedJobList, return true
+		for _, job := range allocatedJobList {
+			if _, exist := renewingJobMap[job]; exist {
+				renewalSucceedJob(ssn, job)
+				delete(renewingJobMap, job)
 			}
-
-			var candidateNodes []*api.NodeInfo
-			for _, n := range predicateNodes {
-				if task.InitResreq.LessEqual(n.Idle) || task.InitResreq.LessEqual(n.FutureIdle()) {
-					candidateNodes = append(candidateNodes, n)
+		}
+		for job := range renewingJobMap {
+			renewalFailedJob(ssn, job)
+		}
+		// for all job in allocatedJobList2, allocate job task
+		for _, job := range allocatedJobList2 {
+			for _, task := range job.Tasks {
+				// all task should have task.NodeName after pseudo scheduling
+				if task.Status == api.Pipelined {
+					_ = stmt.Pipeline(task, task.NodeName)
+				} else if task.Status == api.Allocated {
+					_ = stmt.Allocate(task, task.NodeName)
 				}
-			}
-
-			// If not candidate nodes for this task, skip it.
-			if len(candidateNodes) == 0 {
-				continue
-			}
-
-			nodeScores := util.PrioritizeNodes(task, candidateNodes, ssn.BatchNodeOrderFn, ssn.NodeOrderMapFn, ssn.NodeOrderReduceFn)
-
-			node := ssn.BestNodeFn(task, nodeScores)
-			if node == nil {
-				node = util.SelectBestNode(nodeScores)
-			}
-
-			// Allocate idle resource to the task.
-			if task.InitResreq.LessEqual(node.Idle) {
-				klog.V(3).Infof("Binding Task <%v/%v> to node <%v>",
-					task.Namespace, task.Name, node.Name)
-				if err := stmt.Allocate(task, node.Name); err != nil {
-					klog.Errorf("Failed to bind Task %v on %v in Session %v, err: %v",
-						task.UID, node.Name, ssn.UID, err)
-				}
-			} else {
-				klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s> with limited resources",
-					task.Namespace, task.Name, node.Name)
-
-				// Allocate releasing resource to the task if any.
-				if task.InitResreq.LessEqual(node.FutureIdle()) {
-					klog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
-						task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
-					if err := ssn.Pipeline(task, node.Name); err != nil {
-						klog.Errorf("Failed to pipeline Task %v on %v in Session %v for %v.",
-							task.UID, node.Name, ssn.UID, err)
-					}
-				}
-			}
-
-			if ssn.JobReady(job) && !tasks.Empty() {
-				jobs.Push(job)
-				metrics.UpdateE2eSchedulingDurationByJob(job.Name, metrics.Duration(job.CreationTimestamp.Time))
-				break
 			}
 		}
 
-		if ssn.JobReady(job) {
-			metrics.UpdateE2eSchedulingDurationByJob(job.Name, metrics.Duration(job.CreationTimestamp.Time))
-			stmt.Commit()
-		} else {
-			stmt.Discard()
-		}
+		stmt.Commit()
 
 		// Added Namespace back until no job in Namespace.
 		namespaces.Push(namespace)
@@ -267,12 +181,159 @@ func (la *Action) Execute(ssn *framework.Session) {
 
 func (la *Action) UnInitialize() {}
 
-func (la *Action) getUserFairnessFlag(ssn *framework.Session) bool {
-	flag := defaultUserFairnessFlag
-	arg := framework.GetArgOfActionFromConf(ssn.Configurations, la.Name())
-	if arg != nil {
-		arg.GetBool(&flag, userFairnessFlag)
+// return if job is renewing in this scheduling round
+func isJobRenewing(job *api.JobInfo) bool {
+	return false
+}
+
+// return if job is pending in this scheduling round
+func isJobPending(job *api.JobInfo) bool {
+	for _, task := range job.Tasks {
+		if task.Status != api.Pending {
+			return false
+		}
+	}
+	return true
+}
+
+func renewalFilter(j interface{}) bool {
+	job := j.(*api.JobInfo)
+	if !(isJobRenewing(job) || isJobPending(job)) {
+		return false
+	}
+	return true
+}
+
+func pendingFilter(j interface{}) bool {
+	job := j.(*api.JobInfo)
+	return isJobPending(job)
+}
+
+func jobList2UserJobPQ(jobs []*api.JobInfo, lessFn api.LessFn, filterFns []func(j *api.JobInfo) bool) (result map[api.QueueID]*util.PriorityQueue) {
+	result = make(map[api.QueueID]*util.PriorityQueue)
+	for _, job := range jobs {
+		queueID := job.Queue
+		if _, exist := result[queueID]; !exist {
+			m := util.NewPriorityQueue(lessFn)
+			result[queueID] = m
+		}
+		result[queueID].Push(job)
+	}
+	return
+}
+
+func (la *Action) scheduling(ssn *framework.Session, userJobPQ map[api.QueueID]*util.PriorityQueue, candidateNodes []*api.NodeInfo, predicatedFn api.PredicateFn, filterFns ...func(interface{}) bool) (allocatedJobList []*api.JobInfo) {
+	// for every user, allocate user pending job in order, under the restriction of user quota
+	for queueID := range userJobPQ {
+		pendingJobs := userJobPQ[queueID]
+		pendingJobs.Filter(filterFns...)
+		for !pendingJobs.Empty() {
+			// select one job
+			job := pendingJobs.Pop().(*api.JobInfo)
+			// check quota
+			if ssn.Overused(ssn.Queues[queueID]) {
+				// quota exceeds, skip current user
+				break
+			}
+			// try to allocate the job
+			// allocateJob will affect job status and resource status
+			if allocateJob(ssn, job, candidateNodes, predicatedFn) {
+				allocatedJobList = append(allocatedJobList, job)
+			}
+			// update queue quota usage (in allocateFn)
+		}
+	}
+	return
+}
+
+func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo, predicateFn api.PredicateFn) bool {
+	// statement only handles single job resource allocate
+	// resource will be restored only when job is not allocated due to gang
+	stmt := framework.NewStatement(ssn)
+	tasks := util.NewPriorityQueue(ssn.TaskOrderFn)
+	for _, task := range job.Tasks {
+		// use task clone to avoid modify original task status
+		tasks.Push(task.Clone())
 	}
 
-	return flag
+	for !tasks.Empty() {
+		task := tasks.Pop().(*api.TaskInfo)
+
+		predicateNodes, fitErrors := util.PredicateNodes(task, nodes, predicateFn)
+		if len(predicateNodes) == 0 {
+			job.NodesFitErrors[task.UID] = fitErrors
+			break
+		}
+
+		var candidateNodes []*api.NodeInfo
+		for _, n := range predicateNodes {
+			if task.InitResreq.LessEqual(n.Idle) || task.InitResreq.LessEqual(n.FutureIdle()) {
+				candidateNodes = append(candidateNodes, n)
+			}
+		}
+
+		// If not candidate nodes for this task, skip it.
+		if len(candidateNodes) == 0 {
+			return false
+		}
+
+		nodeScores := util.PrioritizeNodes(task, candidateNodes, ssn.BatchNodeOrderFn, ssn.NodeOrderMapFn, ssn.NodeOrderReduceFn)
+
+		node := ssn.BestNodeFn(task, nodeScores)
+		if node == nil {
+			node = util.SelectBestNode(nodeScores)
+		}
+
+		// Allocate idle resource to the task.
+		if task.InitResreq.LessEqual(node.Idle) {
+			klog.V(3).Infof("Binding Task <%v/%v> to node <%v>",
+				task.Namespace, task.Name, node.Name)
+			if err := stmt.Allocate(task, node.Name); err != nil {
+				klog.Errorf("Failed to bind Task %v on %v in Session %v, err: %v",
+					task.UID, node.Name, ssn.UID, err)
+			}
+		} else {
+			klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s> with limited resources",
+				task.Namespace, task.Name, node.Name)
+
+			// Allocate releasing resource to the task if any.
+			if task.InitResreq.LessEqual(node.FutureIdle()) {
+				klog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
+					task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
+				if err := stmt.Pipeline(task, node.Name); err != nil {
+					klog.Errorf("Failed to pipeline Task %v on %v in Session %v for %v.",
+						task.UID, node.Name, ssn.UID, err)
+				}
+			}
+		}
+	}
+	// check if job is allocated (gang)
+	if job.IsAllocated() {
+		return true
+	} else {
+		// discard allocated task impact on resource
+		stmt.Discard()
+	}
+	return false
+}
+
+func reclaimJobResource(ssn *framework.Session, job *api.JobInfo) {
+	for _, task := range job.Tasks {
+		if node, found := ssn.Nodes[task.NodeName]; found {
+			klog.V(3).Infof("Remove Task <%v> on node <%v>", task.Name, task.NodeName)
+			err := node.RemoveTask(task)
+			if err != nil {
+				klog.Errorf("Failed to remove Task <%v> on node <%v>: %s", task.Name, task.NodeName, err.Error())
+			}
+		}
+		task.NodeName = ""
+	}
+}
+
+func renewalSucceedJob(ssn *framework.Session, job *api.JobInfo) {
+
+}
+
+func renewalFailedJob(ssn *framework.Session, job *api.JobInfo) {
+
 }

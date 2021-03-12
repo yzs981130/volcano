@@ -77,6 +77,6 @@ func (pl *Consolidate) ScoreExtensions() framework.ScoreExtensions {
 func New(_ *runtime.Unknown, h framework.FrameworkHandle, s *schedulerframework.Session) (framework.Plugin, error) {
 	return &Consolidate{
 		handle: h,
-		ssn: s,
+		ssn:    s,
 	}, nil
 }

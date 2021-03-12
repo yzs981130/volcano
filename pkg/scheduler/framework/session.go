@@ -18,6 +18,7 @@ package framework
 
 import (
 	"fmt"
+	"sync"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -48,6 +49,8 @@ type Session struct {
 	Nodes         map[string]*api.NodeInfo
 	Queues        map[api.QueueID]*api.QueueInfo
 	NamespaceInfo map[api.NamespaceName]*api.NamespaceInfo
+
+	lastSnapshot api.ClusterInfo
 
 	Tiers          []conf.Tier
 	Configurations []conf.Configuration
@@ -426,4 +429,64 @@ func (ssn Session) String() string {
 
 	return msg
 
+}
+
+// Snapshot stores the current ssn.Nodes, ssn.Jobs and ssn.Queues in ssn.lastSnapshot
+func (ssn *Session) Snapshot() {
+	ssn.lastSnapshot = api.ClusterInfo{
+		Nodes:  make(map[string]*api.NodeInfo),
+		Jobs:   make(map[api.JobID]*api.JobInfo),
+		Queues: make(map[api.QueueID]*api.QueueInfo),
+	}
+
+	for _, value := range ssn.Nodes {
+		if !value.Ready() {
+			continue
+		}
+
+		ssn.lastSnapshot.Nodes[value.Name] = value.Clone()
+	}
+
+	for _, value := range ssn.Queues {
+		ssn.lastSnapshot.Queues[value.UID] = value.Clone()
+	}
+
+	var cloneJobLock sync.Mutex
+	var wg sync.WaitGroup
+
+	cloneJob := func(value *api.JobInfo) {
+		defer wg.Done()
+		clonedJob := value.Clone()
+
+		cloneJobLock.Lock()
+		ssn.lastSnapshot.Jobs[value.UID] = clonedJob
+		cloneJobLock.Unlock()
+	}
+
+	for _, value := range ssn.Jobs {
+		// If no scheduling spec, does not handle it.
+		if value.PodGroup == nil {
+			klog.V(4).Infof("The scheduling spec of Job <%v:%s/%s> is nil, ignore it.",
+				value.UID, value.Namespace, value.Name)
+
+			continue
+		}
+
+		if _, found := ssn.lastSnapshot.Queues[value.Queue]; !found {
+			klog.V(3).Infof("The Queue <%v> of Job <%v/%v> does not exist, ignore it.",
+				value.Queue, value.Namespace, value.Name)
+			continue
+		}
+
+		wg.Add(1)
+		go cloneJob(value)
+	}
+	wg.Wait()
+}
+
+// RestoreLastSnapshot restores ssn.lastSnapshot to ssn.Nodes, ssn.Jobs, ssn.Queues
+func (ssn *Session) RestoreLastSnapshot() {
+	ssn.Nodes = ssn.lastSnapshot.Nodes
+	ssn.Jobs = ssn.lastSnapshot.Jobs
+	ssn.Queues = ssn.lastSnapshot.Queues
 }
