@@ -126,8 +126,9 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			qAttr.allocated.Add(event.Task.Resreq)
 			// We need AllocateJobFunc and do the following update to queueAttr and jobAttr in plugin
 			// For simplicity, check if the task allocation is the last allocation
+			// In other words, check if the job is allocated
 			// if true, the job is allocated, update job fairness and queue fairness (like dispatchJob)
-			if isJobLastAllocation(job) {
+			if job.IsAllocated() {
 				jAttr := lp.jobAttrs[job.UID]
 				qAttr.utilized += getJobGPUReq(job) * leaseTerm
 				jAttr.utilized += getJobGPUReq(job) * leaseTerm
@@ -356,16 +357,4 @@ func (lp *leasePlugin) updateJobFairness(attr *jobAttr) {
 	} else {
 		attr.fairness = attr.utilized / attr.deserved
 	}
-}
-
-func isJobLastAllocation(job *api.JobInfo) bool {
-	allocatedStatus := func(s api.TaskStatus) bool {
-		return api.AllocatedStatus(s) || s == api.Succeeded
-	}
-	for status := range job.TaskStatusIndex {
-		if !allocatedStatus(status) {
-			return false
-		}
-	}
-	return true
 }

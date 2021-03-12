@@ -375,3 +375,16 @@ func (ji *JobInfo) Pipelined() bool {
 
 	return occupied >= ji.MinAvailable
 }
+
+// IsAllocated returns whether all tasks of the job is allocated or pipelined
+func (ji *JobInfo) IsAllocated() bool {
+	allocatedStatus := func(s TaskStatus) bool {
+		return s == Allocated || s == Pipelined
+	}
+	for status := range ji.TaskStatusIndex {
+		if !allocatedStatus(status) {
+			return false
+		}
+	}
+	return true
+}
