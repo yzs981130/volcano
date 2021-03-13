@@ -184,7 +184,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 
 	ssn.AddNodeOrderFn(lp.Name(), nodeOrderFn)
 
-	// TODO: build up queue attr like plugin proportion
+	// Finished: build up queue attr like plugin proportion
 	// We need calculate deserved/allocated of every queue to utilize user-level fairness
 	// Get job information and resource information directly from ssn.Jobs and ssn.Nodes to build queue
 	// After building up queue, use ssn.AddQueueOrderFn to utilize user-level fairness
@@ -237,7 +237,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		}
 	}
 
-	// TODO: decide queue quota
+	// Finished: decide queue quota
 	// We need simulate job scheduling and divide free capacity to different queue
 	// Use ssn.AddOverusedFn to support quota settings of each queue
 	// Should be similar with actual scheduling

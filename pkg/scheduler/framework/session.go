@@ -502,6 +502,7 @@ func (ssn *Session) AllocateJob(job *api.JobInfo) {
 	}
 }
 
+// DeallocateJob is a virtual func to call handler in plugin when a job is deallocated
 func (ssn *Session) DeallocateJob(job *api.JobInfo) {
 	for _, eh := range ssn.eventHandlers {
 		if eh.DeallocateJobFunc != nil {

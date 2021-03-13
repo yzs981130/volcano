@@ -23,13 +23,13 @@ import (
 // Event structure
 type Event struct {
 	Task *api.TaskInfo
-	Job	*api.JobInfo
+	Job  *api.JobInfo
 }
 
 // EventHandler structure
 type EventHandler struct {
-	AllocateFunc   func(event *Event)
-	DeallocateFunc func(event *Event)
-	AllocateJobFunc	func(event *Event)
-	DeallocateJobFunc	func(event *Event)
+	AllocateFunc      func(event *Event)
+	DeallocateFunc    func(event *Event)
+	AllocateJobFunc   func(event *Event)
+	DeallocateJobFunc func(event *Event)
 }

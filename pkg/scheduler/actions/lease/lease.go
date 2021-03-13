@@ -119,10 +119,10 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// because the allocation of job would change the priority of queue among all namespaces,
 		// and the PriorityQueue have no ability to update priority for a special queue.
 
-		// TODO: Do scheduling on queue(pending jobs in queue v.s. queue.quota)
+		// Finished: Do scheduling on queue(pending jobs in queue v.s. queue.quota)
 		// select job by jobOrderFn, with resource restriction of queue.quota
 
-		// TODO: extra logic for lease renewal job
+		// Finished: extra logic for lease renewal job
 		// Do scheduling twice with renewal job and without job
 		// different logic in committing scheduling results according to job type
 
