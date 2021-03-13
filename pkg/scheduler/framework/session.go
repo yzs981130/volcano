@@ -490,3 +490,24 @@ func (ssn *Session) RestoreLastSnapshot() {
 	ssn.Jobs = ssn.lastSnapshot.Jobs
 	ssn.Queues = ssn.lastSnapshot.Queues
 }
+
+// AllocateJob is a virtual func to call handler in plugin when a job is allocated
+func (ssn *Session) AllocateJob(job *api.JobInfo) {
+	for _, eh := range ssn.eventHandlers {
+		if eh.AllocateJobFunc != nil {
+			eh.AllocateJobFunc(&Event{
+				Job: job,
+			})
+		}
+	}
+}
+
+func (ssn *Session) DeallocateJob(job *api.JobInfo) {
+	for _, eh := range ssn.eventHandlers {
+		if eh.DeallocateJobFunc != nil {
+			eh.DeallocateJobFunc(&Event{
+				Job: job,
+			})
+		}
+	}
+}
