@@ -8,10 +8,19 @@ import (
 	"volcano.sh/volcano/pkg/scheduler/util"
 )
 
-type Action struct{}
+type Action struct{
+	isBlock	bool
+}
+
+const (
+	blockScheduling = "blockScheduling"
+	defaultBlockScheduling = false
+)
 
 func New() *Action {
-	return &Action{}
+	return &Action{
+		isBlock: defaultBlockScheduling,
+	}
 }
 
 func (la *Action) Name() string {
@@ -23,6 +32,8 @@ func (la *Action) Initialize() {}
 func (la *Action) Execute(ssn *framework.Session) {
 	klog.V(3).Infof("Enter Lease ...")
 	defer klog.V(3).Infof("Leaving Lease ...")
+
+	la.getIsBlock(ssn)
 
 	// the conventional allocation for pod may have many stages
 	// 1. pick a namespace named N (using ssn.NamespaceOrderFn)
@@ -246,10 +257,15 @@ func (la *Action) scheduling(ssn *framework.Session, userJobPQ map[api.QueueID]*
 			}
 			// try to allocate the job
 			// allocateJob will affect job status and resource status
-			if allocateJob(ssn, job, candidateNodes, predicatedFn) {
+			canAllocate := false
+			if canAllocate = allocateJob(ssn, job, candidateNodes, predicatedFn); canAllocate {
 				allocatedJobList = append(allocatedJobList, job)
 				// update queue quota usage (in allocateJobFn)
 				ssn.AllocateJob(job)
+			}
+			// if enable block scheduling, skip to next user once allocation failed
+			if !canAllocate && la.isBlock {
+				break
 			}
 		}
 	}
@@ -284,7 +300,7 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 
 		// If not candidate nodes for this task, skip it.
 		if len(candidateNodes) == 0 {
-			return false
+			break
 		}
 
 		nodeScores := util.PrioritizeNodes(task, candidateNodes, ssn.BatchNodeOrderFn, ssn.NodeOrderMapFn, ssn.NodeOrderReduceFn)
@@ -302,19 +318,16 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 				klog.Errorf("Failed to bind Task %v on %v in Session %v, err: %v",
 					task.UID, node.Name, ssn.UID, err)
 			}
-		} else {
-			klog.V(3).Infof("Predicates failed for task <%s/%s> on node <%s> with limited resources",
-				task.Namespace, task.Name, node.Name)
-
-			// Allocate releasing resource to the task if any.
-			if task.InitResreq.LessEqual(node.FutureIdle()) {
-				klog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
-					task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
-				if err := stmt.Pipeline(task, node.Name); err != nil {
-					klog.Errorf("Failed to pipeline Task %v on %v in Session %v for %v.",
-						task.UID, node.Name, ssn.UID, err)
-				}
+		} else if task.InitResreq.LessEqual(node.FutureIdle()){
+			klog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
+				task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
+			if err := stmt.Pipeline(task, node.Name); err != nil {
+				klog.Errorf("Failed to pipeline Task %v on %v in Session %v for %v.",
+					task.UID, node.Name, ssn.UID, err)
 			}
+		} else {
+			// no enough resource, job allocation failed because of gang scheduling
+			break
 		}
 	}
 	// check if job is allocated (gang)
@@ -346,4 +359,11 @@ func renewalSucceedJob(ssn *framework.Session, job *api.JobInfo) {
 
 func renewalFailedJob(ssn *framework.Session, job *api.JobInfo) {
 
+}
+
+func (la *Action)getIsBlock(ssn *framework.Session) {
+	arg := framework.GetArgOfActionFromConf(ssn.Configurations, la.Name())
+	if arg != nil {
+		arg.GetBool(&la.isBlock, blockScheduling)
+	}
 }
