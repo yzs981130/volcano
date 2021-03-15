@@ -34,16 +34,11 @@ func (pl *Consolidate) Name() string {
 // Score invoked at the Score extension point.
 func (pl *Consolidate) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
 	// get node from ssn.Nodes
-	var node *api.NodeInfo
-	for _, n := range pl.ssn.Nodes {
-		if n.Name == nodeName {
-			node = n
-		}
-	}
 	// never happens
-	if node == nil {
+	if _, exist := pl.ssn.Nodes[nodeName]; !exist {
 		panic("no node in ssn.Node in prioritize")
 	}
+	node := pl.ssn.Nodes[nodeName]
 
 	var score int64
 	var nodeAllocatableGPU, nodeRequestedGPU float64
