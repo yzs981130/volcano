@@ -8,12 +8,12 @@ import (
 	"volcano.sh/volcano/pkg/scheduler/util"
 )
 
-type Action struct{
-	isBlock	bool
+type Action struct {
+	isBlock bool
 }
 
 const (
-	blockScheduling = "blockScheduling"
+	blockScheduling        = "blockScheduling"
 	defaultBlockScheduling = false
 )
 
@@ -318,7 +318,7 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 				klog.Errorf("Failed to bind Task %v on %v in Session %v, err: %v",
 					task.UID, node.Name, ssn.UID, err)
 			}
-		} else if task.InitResreq.LessEqual(node.FutureIdle()){
+		} else if task.InitResreq.LessEqual(node.FutureIdle()) {
 			klog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
 				task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
 			if err := stmt.Pipeline(task, node.Name); err != nil {
@@ -361,7 +361,7 @@ func renewalFailedJob(ssn *framework.Session, job *api.JobInfo) {
 
 }
 
-func (la *Action)getIsBlock(ssn *framework.Session) {
+func (la *Action) getIsBlock(ssn *framework.Session) {
 	arg := framework.GetArgOfActionFromConf(ssn.Configurations, la.Name())
 	if arg != nil {
 		arg.GetBool(&la.isBlock, blockScheduling)
