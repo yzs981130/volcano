@@ -223,3 +223,15 @@ func (nl *NodeLister) List() ([]*v1.Node, error) {
 	}
 	return nodes, nil
 }
+
+// GetPodTotalGPUReq returns total GPU cnt of given pod
+func GetPodTotalGPUReq(pod *v1.Pod) int64 {
+	var totalGPUReq int64
+	for _, container := range pod.Spec.Containers {
+		if n, ok := container.Resources.Requests[api.GPUResourceName]; ok {
+			t, _ := n.AsInt64()
+			totalGPUReq += t
+		}
+	}
+	return totalGPUReq
+}

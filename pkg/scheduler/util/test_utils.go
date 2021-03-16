@@ -30,6 +30,16 @@ import (
 	"volcano.sh/volcano/pkg/scheduler/api"
 )
 
+func CompareInt(lval int, rval int) int {
+	if lval < rval {
+		return 1
+	}
+	if lval > rval {
+		return -1
+	}
+	return 0
+}
+
 // BuildResourceList builts resource list object
 func BuildResourceList(cpu string, memory string) v1.ResourceList {
 	return v1.ResourceList{

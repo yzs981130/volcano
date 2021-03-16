@@ -22,6 +22,11 @@ import (
 	"volcano.sh/volcano/pkg/scheduler/api"
 )
 
+// AssignDiscQueueFn
+// func (ssn *Session) AssignDiscQueueFn(name string, af api.AssignFn) {
+// 	ssn.JobAssignFns[name] = af
+// }
+
 // AddJobOrderFn add job order function
 func (ssn *Session) AddJobOrderFn(name string, cf api.CompareFn) {
 	ssn.jobOrderFns[name] = cf
