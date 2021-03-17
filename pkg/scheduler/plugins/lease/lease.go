@@ -19,6 +19,7 @@ const PluginName = "lease"
 
 const leaseTerm = 900
 const totalResourceNum = 80
+const TolerateRatio = 4
 
 type leasePlugin struct {
 	// Arguments given for the plugin
@@ -54,6 +55,8 @@ const (
 )
 
 var curLeaseIndex = 0
+var GuaranteeResource = 0
+var SpotResource = totalResourceNum
 
 type jobAttr struct {
 	cacheSolution          []int
@@ -65,10 +68,8 @@ type jobAttr struct {
 	stillRequireLease      int
 	remainingTime          int
 	ddlTime                int
-	// submitTime             int
+	submitTime             int
 	reqGPU       int
-	durationTime int
-	submitTime   int
 	duration     int
 }
 
@@ -99,7 +100,7 @@ func max(arr []int) int {
 func (lp *leasePlugin) ProcessUnacceptedJobs(job *api.JobInfo, requireResourceList, requireLeaseList, maximumLeaseList, globalCacheSolution []int) bool {
 	jAttr := lp.jobAttrs[job.UID]
 	maxLen := len(requireLeaseList)
-	// infeasibleLease := requireLeaseList[maxLen-1]
+	infeasibleLease := requireLeaseList[maxLen-1]
 
 	if requireLeaseList[maxLen-1] > maximumLeaseList[maxLen-1] {
 		maximumLeaseList[maxLen-1] = requireLeaseList[maxLen-1]
@@ -136,11 +137,15 @@ func (lp *leasePlugin) ProcessUnacceptedJobs(job *api.JobInfo, requireResourceLi
 		maximumLeaseList[maxLen-1] = right
 	}
 	if jAttr.sloPrioirity == bestEffort {
+		jAttr.requireMipOptimization = 0
 		// TODO
-		return false
 	} else {
-		// TODO
-		return true
+		if maximumLeaseList[-1] < infeasible_lease * TolerateRatio {
+			jAttr.ddlTime = leaseTerm * (maximum_lease_list[-1] + curLeaseIndex) - jAttr.submitTime
+			return true
+		}
+		jAttr.sloPrioirity = unacceptedSLO
+		jAttr.requireMipOptimization = 0
 	} // specified deadline time
 	requireResourceList = requireResourceList[:maxLen-1]
 	requireLeaseList = requireLeaseList[:maxLen-1]
@@ -149,9 +154,16 @@ func (lp *leasePlugin) ProcessUnacceptedJobs(job *api.JobInfo, requireResourceLi
 }
 
 func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
-	// Job selection func
-	// TODO: update jobAttrs.fairness
+	if true {
+		lp.FlushLeaseJobs(ssn)
+		curLeaseIndex += 1
+	}
+	lp.FlushSpotGuaranteeResource(ssn)
+	lp.FlushRunningJobs(ssn)
 	lp.FlushEventJobs(ssn)
+	lp.FlushPendingJobs(ssn)
+
+
 	// use lp.jobAttrs[lv.UID].fairness for job selection
 	jobOrderFn := func(l, r interface{}) int {
 		lv := l.(*api.JobInfo)
@@ -160,8 +172,10 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		klog.V(4).Infof("Lease JobOrderFn: <%v/%v> priority: %f, <%v/%v> priority: %f",
 			lv.Namespace, lv.Name, lp.jobAttrs[lv.UID].emergence, rv.Namespace, rv.Name, lp.jobAttrs[rv.UID].emergence)
 		lattr, rattr := lp.jobAttrs[lv.UID], lp.jobAttrs[rv.UID]
-		if lattr.occupyLease == rattr.occupyLease {
-			if lattr.occupyLease == 0 {
+		lforceOccupy := lattr.occupyLease + lattr.forceGuarantee
+		rforceOccupy := rattr.occupyLease + rattr.forceGuarantee
+		if lforceOccupy == lforceOccupy {
+			if lforceOccupy == 0 {
 				if lattr.sloPrioirity == rattr.sloPrioirity {
 					return compareutil.CompareInt(lattr.emergence, rattr.emergence)
 				} else {
@@ -171,7 +185,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 				return compareutil.CompareInt(int(getJobGPUReq(lv)), int(getJobGPUReq(rv)))
 			}
 		}
-		return compareutil.CompareInt(lattr.occupyLease, rattr.occupyLease)
+		return compareutil.CompareInt(lforceOccupy, rforceOccupy)
 	}
 
 	ssn.AddJobOrderFn(lp.Name(), jobOrderFn)
@@ -315,9 +329,20 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 	for _, job := range ssn.Jobs {
 		if isFinishedJob(job) {
-			delete(lp.jobAttrs, job.UID)
+			_, found := lp.queueOpts[queue.UID]
+			if found {
+				delete(lp.jobAttrs, job.UID)
+			}
 		}
 	}
+}
+
+func isRunningJob(job *api.JobInfo) bool {
+	for status := range job.TaskStatusIndex {
+		if status != api.RUNNING {
+			return false
+	}
+	return false
 }
 
 // check if job need scheduling

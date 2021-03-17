@@ -1,19 +1,76 @@
 package lease
 
 import (
+	"math"
+
 	"volcano.sh/volcano/pkg/scheduler/api"
 	"volcano.sh/volcano/pkg/scheduler/framework"
 )
 
-var SpotResource int = 0
+func (lp *leasePlugin) FlushSpotGuaranteeResource(ssn *framework.Session) {
+	GuaranteeResource = 0
 
+	for _, job := range ssn.Jobs {
+		if isFinishedJob(job) {
+			continue
+		}
+		jAttr, found := lp.jobAttrs[job.UID]
+		if found {
+			if jAttr.occupyLease == 1 {
+				GuaranteeResource += jAttr.reqGPU
+			} else if jAttr.forceGuarantee == 1 {
+				GuaranteeResource += jAttr.reqGPU
+			}
+
+		}
+	}
+	SpotResource = totalResourceNum - GuaranteeResource
+
+}
 func (lp *leasePlugin) FlushLeaseJobs(ssn *framework.Session) {
-	requireResourceList, requireLeaseList, maximumLeaseList, inBlockList, remainingResourceList, _ := lp.LeaseInfoCollection(ssn)
+	requireResourceList, requireLeaseList, maximumLeaseList, inBlockList, remainingResourceList, outBlockList := lp.LeaseInfoCollection(ssn)
 	if len(requireLeaseList) > 0 {
 		_, solutionMatrix := lp.solver.JobSelection(requireResourceList, requireLeaseList, maximumLeaseList, remainingResourceList)
-		for idx, job := range inBlockList {
+		occupyList := append(inBlockList, outBlockList...)
+		for idx, job := range occupyList {
 			jAttr := lp.jobAttrs[job.UID]
 			jAttr.cacheSolution = solutionMatrix[idx]
+			if jAttr.cacheSolution[0] > 0 {
+				jAttr.occupyLease = 1
+			} else {
+				jAttr.occupyLease = 0
+			}
+			jAttr.cacheSolution = jAttr.cacheSolution[1:]
+		}
+	}
+}
+
+func (lp *leasePlugin) FlushRunningJobs(ssn *framework.Session) {
+	for _, job := range ssn.Jobs {
+		if isRunningJob(job) {
+			jAttr, _ := lp.jobAttrs[job.UID]
+			jAttr.remainingTime -= leaseTerm
+			jAttr.emergence = computeEmergence(jAttr.remainingTime, jAttr.reqGPU)
+			if jAttr.sloPrioirity == acceptedSLO && jAttr.occupyLease == 0 {
+				stillRequireLease := int(math.Ceil(float64(jAttr.remainingTime) / float64(leaseTerm)))
+				if stillRequireLease != jAttr.stillRequireLease {
+					for cache_iter := len(jAttr.cacheSolution) - 1; cache_iter >= 0; cache_iter-- {
+						if jAttr.cacheSolution[cache_iter] == 1 {
+							jAttr.cacheSolution[cache_iter] = 0
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func (lp *leasePlugin) FlushPendingJobs(ssn *framework.Session) {
+	for _, job := range ssn.Jobs {
+		if isPendingJob(job) {
+			jAttr, _ := lp.jobAttrs[job.UID]
+			jAttr.emergence = computeEmergence(jAttr.remainingTime, jAttr.reqGPU)
 		}
 	}
 }
@@ -37,6 +94,7 @@ func (lp *leasePlugin) FlushEventJobs(ssn *framework.Session) {
 	eventGuaranteeResource := 0
 	inLeaseRemainingTime := curLeaseIndex*leaseTerm - curTime
 	for _, job := range eventJobs {
+
 		jAttr := &jobAttr{
 			cacheSolution:          nil,
 			emergence:              0,
@@ -46,9 +104,14 @@ func (lp *leasePlugin) FlushEventJobs(ssn *framework.Session) {
 			stillRequireLease:      0,
 			requireMipOptimization: 1,
 			reqGPU:                 int(getJobGPUReq(job)),
+			duration:               job.Duration,
+			submitTime:             job.SubmitTime,
+			remainingTime:          int(float64(job.Duration) * 1.2),
+			ddlTime:                job.DDLTime,
 		}
+		jAttr.stillRequireLease = int(math.Ceil(float64(jAttr.remainingTime) / float64(leaseTerm)))
 
-		maximumLease := 0 // TODO
+		maximumLease := computeMaximumLease(jAttr.ddlTime+jAttr.submitTime, leaseTerm, curLeaseIndex)
 		requireResourceList = append(requireResourceList, jAttr.reqGPU)
 		requireLeaseList = append(requireLeaseList, jAttr.stillRequireLease)
 		maximumLeaseList = append(maximumLeaseList, maximumLease)
@@ -56,8 +119,8 @@ func (lp *leasePlugin) FlushEventJobs(ssn *framework.Session) {
 			if jAttr.remainingTime <= inLeaseRemainingTime {
 				jAttr.forceGuarantee = 1
 				eventGuaranteeResource += jAttr.reqGPU
+				jAttr.requireMipOptimization = 0
 			}
-			jAttr.requireMipOptimization = 0
 		}
 		maxLen = len(maximumLeaseList)
 
@@ -72,9 +135,7 @@ func (lp *leasePlugin) FlushEventJobs(ssn *framework.Session) {
 					for j := 0; j < maxInLease; j++ {
 						resourceNumList = append(resourceNumList, totalResourceNum)
 					}
-
 				}
-
 				feasible, _ = lp.solver.BatchFastCheckIfPackable(requireResourceList,
 					requireLeaseList,
 					maximumLeaseList,
@@ -86,7 +147,7 @@ func (lp *leasePlugin) FlushEventJobs(ssn *framework.Session) {
 				accepted = lp.ProcessUnacceptedJobs(job, requireResourceList, requireLeaseList, maximumLeaseList, globalCacheSolution)
 			}
 			if feasible || accepted {
-				jAttr.ddlTime = leaseTerm * (maximumLeaseList[maxLen-1] - curLeaseIndex)
+				jAttr.ddlTime = leaseTerm*(maximumLeaseList[maxLen-1]+curLeaseIndex) - jAttr.submitTime
 			}
 		} else {
 			requireResourceList = requireResourceList[:maxLen-1]
