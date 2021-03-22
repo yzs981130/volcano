@@ -1,4 +1,4 @@
-module volcano.sh/volcano
+module pkg.yezhisheng.me/volcano
 
 go 1.14
 
