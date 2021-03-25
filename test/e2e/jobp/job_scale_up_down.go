@@ -25,7 +25,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"volcano.sh/volcano/pkg/controllers/job/plugins/svc"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/svc"
 )
 
 var _ = Describe("Dynamic Job scale up and down", func() {

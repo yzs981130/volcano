@@ -26,10 +26,10 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	schedulingv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	versioned "volcano.sh/volcano/pkg/client/clientset/versioned"
-	internalinterfaces "volcano.sh/volcano/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "volcano.sh/volcano/pkg/client/listers/scheduling/v1beta1"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	versioned "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	internalinterfaces "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/internalinterfaces"
+	v1beta1 "pkg.yezhisheng.me/volcano/pkg/client/listers/scheduling/v1beta1"
 )
 
 // PodGroupInformer provides access to a shared informer and lister for

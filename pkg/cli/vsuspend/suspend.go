@@ -21,8 +21,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/cli/util"
+	"pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/cli/util"
 )
 
 type suspendFlags struct {

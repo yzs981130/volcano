@@ -3,8 +3,8 @@ package reserve
 import (
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/util"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/util"
 )
 
 // Action defines the action

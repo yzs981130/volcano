@@ -24,8 +24,8 @@ import (
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
 )
 
 const (

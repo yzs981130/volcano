@@ -19,8 +19,8 @@ limitations under the License.
 package scheduling
 
 import (
-	internalinterfaces "volcano.sh/volcano/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "volcano.sh/volcano/pkg/client/informers/externalversions/scheduling/v1beta1"
+	internalinterfaces "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/internalinterfaces"
+	v1beta1 "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/scheduling/v1beta1"
 )
 
 // Interface provides access to each of this group's versions.

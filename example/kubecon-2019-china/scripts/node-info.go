@@ -6,7 +6,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

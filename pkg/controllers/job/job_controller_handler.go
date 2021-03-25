@@ -28,13 +28,13 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog"
 
-	batch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	bus "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/helpers"
-	scheduling "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/controllers/apis"
-	jobcache "volcano.sh/volcano/pkg/controllers/cache"
-	jobhelpers "volcano.sh/volcano/pkg/controllers/job/helpers"
+	batch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	bus "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	scheduling "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/apis"
+	jobcache "pkg.yezhisheng.me/volcano/pkg/controllers/cache"
+	jobhelpers "pkg.yezhisheng.me/volcano/pkg/controllers/job/helpers"
 )
 
 func (cc *jobcontroller) addCommand(obj interface{}) {

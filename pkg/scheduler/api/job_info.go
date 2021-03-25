@@ -25,8 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"volcano.sh/volcano/pkg/apis/scheduling"
-	"volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
 )
 
 // TaskID is UID type for Task

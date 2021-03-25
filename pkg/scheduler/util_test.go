@@ -20,8 +20,8 @@ import (
 	"reflect"
 	"testing"
 
-	_ "volcano.sh/volcano/pkg/scheduler/actions"
-	"volcano.sh/volcano/pkg/scheduler/conf"
+	_ "pkg.yezhisheng.me/volcano/pkg/scheduler/actions"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
 )
 
 func TestLoadSchedulerConf(t *testing.T) {

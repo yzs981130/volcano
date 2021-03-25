@@ -19,10 +19,10 @@ package plugins
 import (
 	"sync"
 
-	"volcano.sh/volcano/pkg/controllers/job/plugins/env"
-	"volcano.sh/volcano/pkg/controllers/job/plugins/interface"
-	"volcano.sh/volcano/pkg/controllers/job/plugins/ssh"
-	"volcano.sh/volcano/pkg/controllers/job/plugins/svc"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/env"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/interface"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/ssh"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/svc"
 )
 
 func init() {

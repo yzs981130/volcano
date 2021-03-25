@@ -36,9 +36,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog"
 
-	vcbatch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	vcbus "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	schedulerv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
+	vcbatch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	vcbus "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	schedulerv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
 )
 
 // JobKind creates job GroupVersionKind.

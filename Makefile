@@ -14,7 +14,7 @@
 
 BIN_DIR=_output/bin
 RELEASE_DIR=_output/release
-REPO_PATH=volcano.sh/volcano
+REPO_PATH=pkg.yezhisheng.me/volcano
 IMAGE_PREFIX=volcanosh/vc
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"

@@ -28,8 +28,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	ctlJob "volcano.sh/volcano/pkg/cli/job"
-	jobUtil "volcano.sh/volcano/pkg/controllers/job"
+	ctlJob "pkg.yezhisheng.me/volcano/pkg/cli/job"
+	jobUtil "pkg.yezhisheng.me/volcano/pkg/controllers/job"
 )
 
 var _ = Describe("Job E2E Test: Test Job Command", func() {

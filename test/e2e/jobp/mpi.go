@@ -20,8 +20,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	vcbatch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	vcbus "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
+	vcbatch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	vcbus "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
 )
 
 var _ = Describe("MPI E2E Test", func() {

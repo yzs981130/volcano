@@ -26,8 +26,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 )
 
 type getFlags struct {

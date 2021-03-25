@@ -26,8 +26,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/cmd/cli/util"
-	"volcano.sh/volcano/pkg/cli/vsuspend"
+	"pkg.yezhisheng.me/volcano/cmd/cli/util"
+	"pkg.yezhisheng.me/volcano/pkg/cli/vsuspend"
 )
 
 var logFlushFreq = pflag.Duration("log-flush-frequency", 5*time.Second, "Maximum number of seconds between log flushes")

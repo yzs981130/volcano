@@ -26,9 +26,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	busv1alpha1 "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	schedulingv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/cli/util"
+	busv1alpha1 "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/cli/util"
 )
 
 var _ = Describe("Queue E2E Test", func() {

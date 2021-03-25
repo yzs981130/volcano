@@ -22,9 +22,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog"
 
-	batch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/controllers/job/plugins"
-	pluginsinterface "volcano.sh/volcano/pkg/controllers/job/plugins/interface"
+	batch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins"
+	pluginsinterface "pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/interface"
 )
 
 func (cc *jobcontroller) pluginOnPodCreate(job *batch.Job, pod *v1.Pod) error {

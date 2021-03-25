@@ -27,14 +27,14 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/cmd/webhook-manager/app"
-	"volcano.sh/volcano/cmd/webhook-manager/app/options"
+	"pkg.yezhisheng.me/volcano/cmd/webhook-manager/app"
+	"pkg.yezhisheng.me/volcano/cmd/webhook-manager/app/options"
 
-	_ "volcano.sh/volcano/pkg/webhooks/admission/jobs/mutate"
-	_ "volcano.sh/volcano/pkg/webhooks/admission/jobs/validate"
-	_ "volcano.sh/volcano/pkg/webhooks/admission/pods"
-	_ "volcano.sh/volcano/pkg/webhooks/admission/queues/mutate"
-	_ "volcano.sh/volcano/pkg/webhooks/admission/queues/validate"
+	_ "pkg.yezhisheng.me/volcano/pkg/webhooks/admission/jobs/mutate"
+	_ "pkg.yezhisheng.me/volcano/pkg/webhooks/admission/jobs/validate"
+	_ "pkg.yezhisheng.me/volcano/pkg/webhooks/admission/pods"
+	_ "pkg.yezhisheng.me/volcano/pkg/webhooks/admission/queues/mutate"
+	_ "pkg.yezhisheng.me/volcano/pkg/webhooks/admission/queues/validate"
 )
 
 var logFlushFreq = pflag.Duration("log-flush-frequency", 5*time.Second, "Maximum number of seconds between log flushes")

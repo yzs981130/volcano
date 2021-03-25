@@ -27,10 +27,10 @@ import (
 
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/cmd/webhook-manager/app/options"
-	"volcano.sh/volcano/pkg/kube"
-	"volcano.sh/volcano/pkg/version"
-	"volcano.sh/volcano/pkg/webhooks/router"
+	"pkg.yezhisheng.me/volcano/cmd/webhook-manager/app/options"
+	"pkg.yezhisheng.me/volcano/pkg/kube"
+	"pkg.yezhisheng.me/volcano/pkg/version"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/router"
 )
 
 // Run start the service of admission controller.

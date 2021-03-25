@@ -21,7 +21,7 @@ import (
 	whv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	"k8s.io/client-go/kubernetes"
 
-	"volcano.sh/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 )
 
 //The AdmitFunc returns response.

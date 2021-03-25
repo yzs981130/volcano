@@ -34,17 +34,17 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 
-	busv1alpha1 "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	vcclientset "volcano.sh/volcano/pkg/client/clientset/versioned"
-	versionedscheme "volcano.sh/volcano/pkg/client/clientset/versioned/scheme"
-	informerfactory "volcano.sh/volcano/pkg/client/informers/externalversions"
-	busv1alpha1informer "volcano.sh/volcano/pkg/client/informers/externalversions/bus/v1alpha1"
-	schedulinginformer "volcano.sh/volcano/pkg/client/informers/externalversions/scheduling/v1beta1"
-	busv1alpha1lister "volcano.sh/volcano/pkg/client/listers/bus/v1alpha1"
-	schedulinglister "volcano.sh/volcano/pkg/client/listers/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/controllers/apis"
-	"volcano.sh/volcano/pkg/controllers/framework"
-	queuestate "volcano.sh/volcano/pkg/controllers/queue/state"
+	busv1alpha1 "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	vcclientset "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	versionedscheme "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/scheme"
+	informerfactory "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions"
+	busv1alpha1informer "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/bus/v1alpha1"
+	schedulinginformer "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/scheduling/v1beta1"
+	busv1alpha1lister "pkg.yezhisheng.me/volcano/pkg/client/listers/bus/v1alpha1"
+	schedulinglister "pkg.yezhisheng.me/volcano/pkg/client/listers/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/apis"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
+	queuestate "pkg.yezhisheng.me/volcano/pkg/controllers/queue/state"
 )
 
 func init() {

@@ -24,8 +24,8 @@ import (
 	"k8s.io/kubernetes/pkg/scheduler/listers"
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
 )
 
 // PodLister is used in predicate and nodeorder plugin

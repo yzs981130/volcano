@@ -21,7 +21,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 // checkNodeGPUSharingPredicate checks if a gpu sharing pod can be scheduled on a node.

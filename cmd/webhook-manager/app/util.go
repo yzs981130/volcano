@@ -29,9 +29,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/cmd/webhook-manager/app/options"
-	"volcano.sh/volcano/pkg/client/clientset/versioned"
-	"volcano.sh/volcano/pkg/webhooks/router"
+	"pkg.yezhisheng.me/volcano/cmd/webhook-manager/app/options"
+	"pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/router"
 )
 
 func registerWebhookConfig(kubeClient *kubernetes.Clientset, config *options.Config, service *router.AdmissionService, caBundle []byte) {

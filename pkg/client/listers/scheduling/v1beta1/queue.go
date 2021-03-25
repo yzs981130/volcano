@@ -22,7 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"
-	v1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
+	v1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
 )
 
 // QueueLister helps list Queues.

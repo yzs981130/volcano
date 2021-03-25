@@ -27,10 +27,10 @@ import (
 	cv1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	batch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/controllers/job/helpers"
-	"volcano.sh/volcano/pkg/controllers/job/plugins/env"
-	"volcano.sh/volcano/pkg/controllers/job/plugins/svc"
+	batch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/helpers"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/env"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/svc"
 )
 
 var _ = Describe("Job E2E Test: Test Job Plugins", func() {

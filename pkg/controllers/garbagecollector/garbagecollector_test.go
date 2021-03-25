@@ -23,9 +23,9 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	volcanoclient "volcano.sh/volcano/pkg/client/clientset/versioned/fake"
-	"volcano.sh/volcano/pkg/controllers/framework"
+	"pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	volcanoclient "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/fake"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
 )
 
 func TestGarbageCollector_ProcessJob(t *testing.T) {

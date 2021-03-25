@@ -33,12 +33,12 @@ import (
 	k8scorev1 "k8s.io/kubernetes/pkg/apis/core/v1"
 	k8scorevalid "k8s.io/kubernetes/pkg/apis/core/validation"
 
-	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	schedulingv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/controllers/job/plugins"
-	"volcano.sh/volcano/pkg/webhooks/router"
-	"volcano.sh/volcano/pkg/webhooks/schema"
-	"volcano.sh/volcano/pkg/webhooks/util"
+	"pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/router"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/schema"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/util"
 )
 
 func init() {

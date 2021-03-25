@@ -22,9 +22,9 @@ import (
 	"os"
 	"strings"
 
-	busv1alpha1 "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/helpers"
-	"volcano.sh/volcano/pkg/client/clientset/versioned"
+	busv1alpha1 "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	"pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"

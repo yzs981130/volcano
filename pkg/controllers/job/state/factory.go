@@ -19,9 +19,9 @@ package state
 import (
 	v1 "k8s.io/api/core/v1"
 
-	vcbatch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/controllers/apis"
+	vcbatch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/apis"
 )
 
 //PhaseMap to store the pod phases.

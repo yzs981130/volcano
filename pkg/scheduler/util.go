@@ -23,9 +23,9 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"volcano.sh/volcano/pkg/scheduler/conf"
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/plugins"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins"
 )
 
 var defaultSchedulerConf = `

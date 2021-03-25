@@ -19,9 +19,9 @@ package env
 import (
 	v1 "k8s.io/api/core/v1"
 
-	batch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	jobhelpers "volcano.sh/volcano/pkg/controllers/job/helpers"
-	pluginsinterface "volcano.sh/volcano/pkg/controllers/job/plugins/interface"
+	batch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	jobhelpers "pkg.yezhisheng.me/volcano/pkg/controllers/job/helpers"
+	pluginsinterface "pkg.yezhisheng.me/volcano/pkg/controllers/job/plugins/interface"
 )
 
 type envPlugin struct {

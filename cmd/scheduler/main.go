@@ -30,15 +30,15 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/cmd/scheduler/app"
-	"volcano.sh/volcano/cmd/scheduler/app/options"
+	"pkg.yezhisheng.me/volcano/cmd/scheduler/app"
+	"pkg.yezhisheng.me/volcano/cmd/scheduler/app/options"
 
 	// Import default actions/plugins.
-	_ "volcano.sh/volcano/pkg/scheduler/actions"
-	_ "volcano.sh/volcano/pkg/scheduler/plugins"
+	_ "pkg.yezhisheng.me/volcano/pkg/scheduler/actions"
+	_ "pkg.yezhisheng.me/volcano/pkg/scheduler/plugins"
 
 	// init assert
-	_ "volcano.sh/volcano/pkg/scheduler/util/assert"
+	_ "pkg.yezhisheng.me/volcano/pkg/scheduler/util/assert"
 )
 
 var logFlushFreq = pflag.Duration("log-flush-frequency", 5*time.Second, "Maximum number of seconds between log flushes")

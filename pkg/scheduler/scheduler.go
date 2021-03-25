@@ -27,11 +27,11 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/filewatcher"
-	schedcache "volcano.sh/volcano/pkg/scheduler/cache"
-	"volcano.sh/volcano/pkg/scheduler/conf"
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/metrics"
+	"pkg.yezhisheng.me/volcano/pkg/filewatcher"
+	schedcache "pkg.yezhisheng.me/volcano/pkg/scheduler/cache"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/metrics"
 )
 
 // Scheduler watches for new unscheduled pods for volcano. It attempts to find

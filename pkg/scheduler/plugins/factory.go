@@ -17,17 +17,17 @@ limitations under the License.
 package plugins
 
 import (
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/plugins/binpack"
-	"volcano.sh/volcano/pkg/scheduler/plugins/conformance"
-	"volcano.sh/volcano/pkg/scheduler/plugins/drf"
-	"volcano.sh/volcano/pkg/scheduler/plugins/gang"
-	"volcano.sh/volcano/pkg/scheduler/plugins/lease"
-	"volcano.sh/volcano/pkg/scheduler/plugins/nodeorder"
-	"volcano.sh/volcano/pkg/scheduler/plugins/predicates"
-	"volcano.sh/volcano/pkg/scheduler/plugins/priority"
-	"volcano.sh/volcano/pkg/scheduler/plugins/proportion"
-	"volcano.sh/volcano/pkg/scheduler/plugins/reservation"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/binpack"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/conformance"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/drf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/gang"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/lease"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/nodeorder"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/predicates"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/priority"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/proportion"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/reservation"
 )
 
 func init() {

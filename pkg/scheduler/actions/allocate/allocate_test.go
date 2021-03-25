@@ -25,15 +25,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 
-	"volcano.sh/volcano/cmd/scheduler/app/options"
-	schedulingv1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/cache"
-	"volcano.sh/volcano/pkg/scheduler/conf"
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/plugins/drf"
-	"volcano.sh/volcano/pkg/scheduler/plugins/proportion"
-	"volcano.sh/volcano/pkg/scheduler/util"
+	"pkg.yezhisheng.me/volcano/cmd/scheduler/app/options"
+	schedulingv1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/cache"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/drf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/proportion"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/util"
 )
 
 func TestAllocate(t *testing.T) {

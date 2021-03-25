@@ -19,11 +19,11 @@ package preempt
 import (
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/apis/scheduling"
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/metrics"
-	"volcano.sh/volcano/pkg/scheduler/util"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/metrics"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/util"
 )
 
 type Action struct{}

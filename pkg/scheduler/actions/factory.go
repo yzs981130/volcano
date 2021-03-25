@@ -17,15 +17,15 @@ limitations under the License.
 package actions
 
 import (
-	"volcano.sh/volcano/pkg/scheduler/actions/allocate"
-	"volcano.sh/volcano/pkg/scheduler/actions/backfill"
-	"volcano.sh/volcano/pkg/scheduler/actions/elect"
-	"volcano.sh/volcano/pkg/scheduler/actions/enqueue"
-	"volcano.sh/volcano/pkg/scheduler/actions/lease"
-	"volcano.sh/volcano/pkg/scheduler/actions/preempt"
-	"volcano.sh/volcano/pkg/scheduler/actions/reclaim"
-	"volcano.sh/volcano/pkg/scheduler/actions/reserve"
-	"volcano.sh/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/allocate"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/backfill"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/elect"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/enqueue"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/lease"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/preempt"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/reclaim"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/actions/reserve"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
 )
 
 func init() {

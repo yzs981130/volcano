@@ -24,8 +24,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"volcano.sh/volcano/pkg/cli/util"
-	"volcano.sh/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/cli/util"
+	"pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 )
 
 type deleteFlags struct {

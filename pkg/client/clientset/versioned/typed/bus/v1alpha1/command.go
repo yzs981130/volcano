@@ -26,8 +26,8 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
-	v1alpha1 "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	scheme "volcano.sh/volcano/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	scheme "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/scheme"
 )
 
 // CommandsGetter has a method to return a CommandInterface.

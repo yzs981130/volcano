@@ -19,7 +19,7 @@ package framework
 import (
 	schedulerapi "k8s.io/kube-scheduler/extender/v1"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 // AddJobOrderFn add job order function

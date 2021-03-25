@@ -28,12 +28,12 @@ import (
 	kubeclientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	batch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	bus "volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/helpers"
-	scheduling "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	vcclientset "volcano.sh/volcano/pkg/client/clientset/versioned"
-	"volcano.sh/volcano/pkg/controllers/framework"
+	batch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	bus "pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	scheduling "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	vcclientset "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
 )
 
 func newController() *jobcontroller {

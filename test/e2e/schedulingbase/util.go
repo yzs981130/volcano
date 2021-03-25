@@ -43,11 +43,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 
-	batchv1alpha1 "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	schedulingv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	vcclient "volcano.sh/volcano/pkg/client/clientset/versioned"
-	"volcano.sh/volcano/pkg/controllers/job/helpers"
-	schedulerapi "volcano.sh/volcano/pkg/scheduler/api"
+	batchv1alpha1 "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	vcclient "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/job/helpers"
+	schedulerapi "pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 var (

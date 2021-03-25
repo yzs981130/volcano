@@ -25,11 +25,11 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"volcano.sh/volcano/cmd/scheduler/app/options"
-	"volcano.sh/volcano/pkg/apis/helpers"
-	"volcano.sh/volcano/pkg/kube"
-	"volcano.sh/volcano/pkg/scheduler"
-	"volcano.sh/volcano/pkg/version"
+	"pkg.yezhisheng.me/volcano/cmd/scheduler/app/options"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	"pkg.yezhisheng.me/volcano/pkg/kube"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler"
+	"pkg.yezhisheng.me/volcano/pkg/version"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/uuid"

@@ -27,11 +27,11 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/apis/scheduling"
-	"volcano.sh/volcano/pkg/apis/scheduling/scheme"
-	schedulingv1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/apis/utils"
-	schedulingapi "volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling/scheme"
+	schedulingv1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/utils"
+	schedulingapi "pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 func isTerminated(status schedulingapi.TaskStatus) bool {

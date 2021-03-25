@@ -19,8 +19,8 @@ package scheme
 import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"volcano.sh/volcano/pkg/apis/scheduling"
-	"volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
 )
 
 var (

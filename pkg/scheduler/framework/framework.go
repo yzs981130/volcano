@@ -21,9 +21,9 @@ import (
 
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/scheduler/cache"
-	"volcano.sh/volcano/pkg/scheduler/conf"
-	"volcano.sh/volcano/pkg/scheduler/metrics"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/cache"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/metrics"
 )
 
 // OpenSession start the session

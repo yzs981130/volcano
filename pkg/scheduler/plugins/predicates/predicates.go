@@ -31,10 +31,10 @@ import (
 	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/tainttoleration"
 	k8sframework "k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/plugins/util"
-	"volcano.sh/volcano/pkg/scheduler/plugins/util/k8s"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/k8s"
 )
 
 const (

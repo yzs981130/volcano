@@ -27,11 +27,11 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
-	versioned "volcano.sh/volcano/pkg/client/clientset/versioned"
-	batch "volcano.sh/volcano/pkg/client/informers/externalversions/batch"
-	bus "volcano.sh/volcano/pkg/client/informers/externalversions/bus"
-	internalinterfaces "volcano.sh/volcano/pkg/client/informers/externalversions/internalinterfaces"
-	scheduling "volcano.sh/volcano/pkg/client/informers/externalversions/scheduling"
+	versioned "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	batch "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/batch"
+	bus "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/bus"
+	internalinterfaces "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/internalinterfaces"
+	scheduling "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/scheduling"
 )
 
 // SharedInformerOption defines the functional option type for SharedInformerFactory.

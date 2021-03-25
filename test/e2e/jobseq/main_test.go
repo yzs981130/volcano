@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 
-	vcclient "volcano.sh/volcano/pkg/client/clientset/versioned"
+	vcclient "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 )
 
 func TestMain(m *testing.M) {

@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
 )
 
 var _ = Describe("Job E2E Test: Test Job PVCs", func() {

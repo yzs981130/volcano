@@ -25,9 +25,9 @@ import (
 	kubeclient "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
 
-	schedulingv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	vcclient "volcano.sh/volcano/pkg/client/clientset/versioned/fake"
-	"volcano.sh/volcano/pkg/controllers/framework"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	vcclient "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/fake"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
 )
 
 func newFakeController() *queuecontroller {

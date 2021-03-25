@@ -31,9 +31,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/cli/util"
-	"volcano.sh/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/cli/util"
+	"pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 )
 
 type viewFlags struct {

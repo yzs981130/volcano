@@ -2,9 +2,9 @@ package consolidate
 
 import (
 	"context"
-	"volcano.sh/volcano/pkg/scheduler/api"
-	schedulerframework "volcano.sh/volcano/pkg/scheduler/framework"
-	"volcano.sh/volcano/pkg/scheduler/plugins/util"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	schedulerframework "pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"

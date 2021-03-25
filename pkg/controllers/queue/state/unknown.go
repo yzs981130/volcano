@@ -17,8 +17,8 @@ limitations under the License.
 package state
 
 import (
-	"volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
 )
 
 type unknownState struct {

@@ -26,10 +26,10 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/webhooks/router"
-	"volcano.sh/volcano/pkg/webhooks/schema"
-	"volcano.sh/volcano/pkg/webhooks/util"
+	"pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/router"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/schema"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/util"
 )
 
 const (

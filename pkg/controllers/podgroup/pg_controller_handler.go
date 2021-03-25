@@ -25,8 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/apis/helpers"
-	scheduling "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	scheduling "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
 )
 
 type podRequest struct {

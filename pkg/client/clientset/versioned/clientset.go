@@ -24,9 +24,9 @@ import (
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
-	batchv1alpha1 "volcano.sh/volcano/pkg/client/clientset/versioned/typed/batch/v1alpha1"
-	busv1alpha1 "volcano.sh/volcano/pkg/client/clientset/versioned/typed/bus/v1alpha1"
-	schedulingv1beta1 "volcano.sh/volcano/pkg/client/clientset/versioned/typed/scheduling/v1beta1"
+	batchv1alpha1 "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/typed/batch/v1alpha1"
+	busv1alpha1 "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/typed/bus/v1alpha1"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/typed/scheduling/v1beta1"
 )
 
 type Interface interface {

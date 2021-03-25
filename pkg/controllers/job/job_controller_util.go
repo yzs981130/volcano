@@ -24,12 +24,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/klog"
 
-	batch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/bus/v1alpha1"
-	"volcano.sh/volcano/pkg/apis/helpers"
-	schedulingv2 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/controllers/apis"
-	jobhelpers "volcano.sh/volcano/pkg/controllers/job/helpers"
+	batch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/bus/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	schedulingv2 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/apis"
+	jobhelpers "pkg.yezhisheng.me/volcano/pkg/controllers/job/helpers"
 )
 
 // MakePodName append podname,jobname,taskName and index and returns the string.

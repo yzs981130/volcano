@@ -17,7 +17,7 @@ limitations under the License.
 package api
 
 import (
-	"volcano.sh/volcano/pkg/apis/scheduling"
+	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
 )
 
 // PodGroupPhase is the phase of a pod group at the current time.

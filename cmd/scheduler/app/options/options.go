@@ -22,7 +22,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"volcano.sh/volcano/pkg/kube"
+	"pkg.yezhisheng.me/volcano/pkg/kube"
 )
 
 const (

@@ -30,8 +30,8 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	schedulerapi "k8s.io/kube-scheduler/extender/v1"
 
-	"volcano.sh/volcano/cmd/scheduler/app/options"
-	"volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/cmd/scheduler/app/options"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 const baselinePercentageOfNodesToFind = 50

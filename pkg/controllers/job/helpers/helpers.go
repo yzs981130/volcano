@@ -24,7 +24,7 @@ import (
 
 	"k8s.io/api/core/v1"
 
-	"volcano.sh/volcano/pkg/controllers/apis"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/apis"
 )
 
 const (

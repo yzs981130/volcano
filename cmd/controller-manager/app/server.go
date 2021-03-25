@@ -34,11 +34,11 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/cmd/controller-manager/app/options"
-	"volcano.sh/volcano/pkg/apis/helpers"
-	vcclientset "volcano.sh/volcano/pkg/client/clientset/versioned"
-	"volcano.sh/volcano/pkg/controllers/framework"
-	"volcano.sh/volcano/pkg/kube"
+	"pkg.yezhisheng.me/volcano/cmd/controller-manager/app/options"
+	"pkg.yezhisheng.me/volcano/pkg/apis/helpers"
+	vcclientset "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
+	"pkg.yezhisheng.me/volcano/pkg/kube"
 )
 
 const (

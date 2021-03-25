@@ -19,7 +19,7 @@ package framework
 import (
 	"strconv"
 
-	"volcano.sh/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
 
 	"k8s.io/klog"
 )

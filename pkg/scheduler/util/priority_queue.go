@@ -19,7 +19,7 @@ package util
 import (
 	"container/heap"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 //PriorityQueue implements a scheduling queue.

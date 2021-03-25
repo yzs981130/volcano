@@ -27,14 +27,14 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog"
 
-	_ "volcano.sh/volcano/pkg/controllers/garbagecollector"
-	_ "volcano.sh/volcano/pkg/controllers/job"
-	_ "volcano.sh/volcano/pkg/controllers/podgroup"
-	_ "volcano.sh/volcano/pkg/controllers/queue"
+	_ "pkg.yezhisheng.me/volcano/pkg/controllers/garbagecollector"
+	_ "pkg.yezhisheng.me/volcano/pkg/controllers/job"
+	_ "pkg.yezhisheng.me/volcano/pkg/controllers/podgroup"
+	_ "pkg.yezhisheng.me/volcano/pkg/controllers/queue"
 
-	"volcano.sh/volcano/cmd/controller-manager/app"
-	"volcano.sh/volcano/cmd/controller-manager/app/options"
-	"volcano.sh/volcano/pkg/version"
+	"pkg.yezhisheng.me/volcano/cmd/controller-manager/app"
+	"pkg.yezhisheng.me/volcano/cmd/controller-manager/app/options"
+	"pkg.yezhisheng.me/volcano/pkg/version"
 )
 
 var logFlushFreq = pflag.Duration("log-flush-frequency", 5*time.Second, "Maximum number of seconds between log flushes")

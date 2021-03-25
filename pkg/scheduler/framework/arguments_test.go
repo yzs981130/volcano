@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"testing"
 
-	"volcano.sh/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
 )
 
 type GetIntTestCases struct {

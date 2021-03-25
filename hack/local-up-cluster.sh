@@ -20,7 +20,7 @@ if [ -z $GOPATH ]; then
 fi
 
 K8S_HOME=$GOPATH/src/k8s.io/kubernetes
-VC_HOME=$GOPATH/src/volcano.sh/volcano
+VC_HOME=$GOPATH/src/pkg.yezhisheng.me/volcano
 
 CERT_DIR=${VC_HOME}/volcano/certs
 

@@ -17,7 +17,7 @@ limitations under the License.
 package state
 
 import (
-	vcbatch "volcano.sh/volcano/pkg/apis/batch/v1alpha1"
+	vcbatch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
 )
 
 // DefaultMaxRetry is the default number of retries.

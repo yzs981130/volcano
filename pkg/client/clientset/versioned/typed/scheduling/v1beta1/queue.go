@@ -26,8 +26,8 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	rest "k8s.io/client-go/rest"
-	v1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	scheme "volcano.sh/volcano/pkg/client/clientset/versioned/scheme"
+	v1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	scheme "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/scheme"
 )
 
 // QueuesGetter has a method to return a QueueInterface.

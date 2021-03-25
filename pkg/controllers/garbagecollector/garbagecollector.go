@@ -28,12 +28,12 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/apis/batch/v1alpha1"
-	vcclientset "volcano.sh/volcano/pkg/client/clientset/versioned"
-	informerfactory "volcano.sh/volcano/pkg/client/informers/externalversions"
-	batchinformers "volcano.sh/volcano/pkg/client/informers/externalversions/batch/v1alpha1"
-	batchlisters "volcano.sh/volcano/pkg/client/listers/batch/v1alpha1"
-	"volcano.sh/volcano/pkg/controllers/framework"
+	"pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
+	vcclientset "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	informerfactory "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions"
+	batchinformers "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/batch/v1alpha1"
+	batchlisters "pkg.yezhisheng.me/volcano/pkg/client/listers/batch/v1alpha1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
 )
 
 func init() {

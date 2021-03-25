@@ -26,12 +26,12 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 
-	scheduling "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	vcclientset "volcano.sh/volcano/pkg/client/clientset/versioned"
-	informerfactory "volcano.sh/volcano/pkg/client/informers/externalversions"
-	schedulinginformer "volcano.sh/volcano/pkg/client/informers/externalversions/scheduling/v1beta1"
-	schedulinglister "volcano.sh/volcano/pkg/client/listers/scheduling/v1beta1"
-	"volcano.sh/volcano/pkg/controllers/framework"
+	scheduling "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	vcclientset "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
+	informerfactory "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions"
+	schedulinginformer "pkg.yezhisheng.me/volcano/pkg/client/informers/externalversions/scheduling/v1beta1"
+	schedulinglister "pkg.yezhisheng.me/volcano/pkg/client/listers/scheduling/v1beta1"
+	"pkg.yezhisheng.me/volcano/pkg/controllers/framework"
 )
 
 func init() {

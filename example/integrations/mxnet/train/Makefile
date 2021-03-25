@@ -1,4 +1,4 @@
-IMG := volcano.sh/volcano/mxnet-train-mnist
+IMG := pkg.yezhisheng.me/volcano/mxnet-train-mnist
 
 TAG := $(shell date +v%Y%m%d)
 

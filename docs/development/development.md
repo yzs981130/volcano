@@ -16,7 +16,7 @@ a few minutes to update this file.
 
 ## Cloning the code
 
-You will need to clone the main `volcano` repo to `$GOPATH/src/volcano.sh/volcano` for
+You will need to clone the main `volcano` repo to `$GOPATH/src/pkg.yezhisheng.me/volcano` for
 the below commands to work correctly.
 
 ## Building the code
@@ -27,13 +27,13 @@ the source root and run:
 ```bash
 make image_bins
 ```
-the binaries will be generated at .../src/volcano.sh/volcano/_output/bin/linux/amd64/
+the binaries will be generated at .../src/pkg.yezhisheng.me/volcano/_output/bin/linux/amd64/
 but if we just make as below
 
 ```bash
 make
 ```
-then the binaries would be generated at .../src/volcano.sh/volcano/_output/bin/
+then the binaries would be generated at .../src/pkg.yezhisheng.me/volcano/_output/bin/
 
 To build a specific component for your host architecture, go to
 the source root and run `make <component name>`:
@@ -56,7 +56,7 @@ make images
 If you want to make a local change and test some component, say `vc-controller-manager`, you
 could do:
 
-Under volcano.sh/volcano repo
+Under pkg.yezhisheng.me/volcano repo
 
 ```bash
 pwd
@@ -64,7 +64,7 @@ pwd
 The path should be
 
 ```bash
-.../src/volcano.sh/volcano
+.../src/pkg.yezhisheng.me/volcano
 ```
 
 Set up environment variables HUB and TAG by
@@ -118,7 +118,7 @@ make e2e
 If you want to run e2e test in a existing cluster with volcano deployed, run the following:
 
 ```bash
-export VC_BIN= need to set vcctl binary path (eg:.../src/volcano.sh/volcano/_output/bin/)
+export VC_BIN= need to set vcctl binary path (eg:.../src/pkg.yezhisheng.me/volcano/_output/bin/)
 KUBECONFIG=${KUBECONFIG} go test ./test/e2e
 ```
 

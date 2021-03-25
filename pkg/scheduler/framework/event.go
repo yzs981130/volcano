@@ -17,7 +17,7 @@ limitations under the License.
 package framework
 
 import (
-	"volcano.sh/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 )
 
 // Event structure

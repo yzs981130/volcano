@@ -4,13 +4,13 @@ import (
 	"context"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/klog"
-	"volcano.sh/volcano/pkg/scheduler/plugins/util"
-	"volcano.sh/volcano/pkg/scheduler/plugins/util/consolidate"
-	"volcano.sh/volcano/pkg/scheduler/plugins/util/k8s"
-	schedulerutil "volcano.sh/volcano/pkg/scheduler/util"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/consolidate"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/k8s"
+	schedulerutil "pkg.yezhisheng.me/volcano/pkg/scheduler/util"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
 )
 
 // PluginName indicates name of volcano scheduler plugin.

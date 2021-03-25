@@ -21,8 +21,8 @@ import (
 
 	"k8s.io/klog"
 
-	"volcano.sh/volcano/pkg/scheduler/api"
-	"volcano.sh/volcano/pkg/scheduler/metrics"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/metrics"
 )
 
 // Operation type

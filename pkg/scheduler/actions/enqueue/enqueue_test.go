@@ -3,8 +3,8 @@ package enqueue
 import (
 	"testing"
 
-	"volcano.sh/volcano/pkg/scheduler/conf"
-	"volcano.sh/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/conf"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
 )
 
 func TestGetOverCommitFactor(t *testing.T) {

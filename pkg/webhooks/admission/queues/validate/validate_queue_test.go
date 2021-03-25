@@ -29,9 +29,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	schedulingv1beta1 "volcano.sh/volcano/pkg/apis/scheduling/v1beta1"
-	fakeclient "volcano.sh/volcano/pkg/client/clientset/versioned/fake"
-	"volcano.sh/volcano/pkg/webhooks/util"
+	schedulingv1beta1 "pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	fakeclient "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned/fake"
+	"pkg.yezhisheng.me/volcano/pkg/webhooks/util"
 )
 
 func TestAdmitQueues(t *testing.T) {

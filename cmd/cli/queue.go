@@ -19,7 +19,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"volcano.sh/volcano/pkg/cli/queue"
+	"pkg.yezhisheng.me/volcano/pkg/cli/queue"
 )
 
 func buildQueueCmd() *cobra.Command {
