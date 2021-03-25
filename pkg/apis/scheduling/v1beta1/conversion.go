@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	"strconv"
 	unsafe "unsafe"
 
 	v1 "k8s.io/api/core/v1"
@@ -28,6 +29,7 @@ func Convert_scheduling_QueueSpec_To_v1beta1_QueueSpec(in *scheduling.QueueSpec,
 	out.Weight = in.Weight
 	out.Capability = *(*v1.ResourceList)(unsafe.Pointer(&in.Capability))
 	out.Reclaimable = (*bool)(unsafe.Pointer(in.Reclaimable))
+	out.QuotaRatio = strconv.FormatFloat(in.QuotaRatio, 'E', -1, 64)
 
 	return nil
 }

@@ -50,6 +50,10 @@ spec:
                 x-kubernetes-int-or-string: true
               description: ResourceList is a set of (resource name, quantity) pairs.
               type: object
+            quota_ratio:
+              description: QuotaRatio indicates static setting of quota ratio of each
+                VC
+              type: string
             reclaimable:
               description: Reclaimable indicate whether the queue can be reclaimed
                 by other queue
