@@ -235,3 +235,15 @@ func GetPodTotalGPUReq(pod *v1.Pod) int64 {
 	}
 	return totalGPUReq
 }
+
+// SumSuffix returns sum of specific suffix
+func SumSuffix(a []float64, index int) float64 {
+	if index > len(a) {
+		index = len(a)
+	}
+	var r float64
+	for i := len(a) - 1; i >= len(a)-index; i-- {
+		r += a[i]
+	}
+	return r
+}
