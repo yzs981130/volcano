@@ -8,6 +8,7 @@ import (
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/consolidate"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/k8s"
 	schedulerutil "pkg.yezhisheng.me/volcano/pkg/scheduler/util"
+	"time"
 
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
@@ -26,6 +27,9 @@ type leasePlugin struct {
 
 	queueOpts     map[api.QueueID]*queueAttr
 	totalResource *api.Resource
+
+	firstRun bool
+	mc       *MetricsCollector
 }
 
 type queueAttr struct {
@@ -57,6 +61,8 @@ func New(arguments framework.Arguments) framework.Plugin {
 		jobAttrs:        map[api.JobID]*jobAttr{},
 		queueOpts:       map[api.QueueID]*queueAttr{},
 		totalResource:   api.EmptyResource(),
+
+		firstRun: true,
 	}
 }
 
@@ -65,6 +71,11 @@ func (lp *leasePlugin) Name() string {
 }
 
 func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
+	// if first run, init metrics collector
+	if lp.firstRun {
+		lp.mc = NewMetricsCollector(10*time.Second, ssn, lp)
+	}
+
 	// Job selection func
 	// TODO: update jobAttrs.fairness
 	for _, job := range ssn.Jobs {
@@ -302,6 +313,8 @@ func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 	// clear queueOpts
 	lp.queueOpts = map[api.QueueID]*queueAttr{}
 	lp.totalResource = api.EmptyResource()
+
+	lp.firstRun = false
 }
 
 // check if job need scheduling
