@@ -190,7 +190,7 @@ func (mc *MetricsCollector) addIfNotExist() {
 	}
 	// add job into jobPool and userJob
 	for jobID, job := range mc.ssn.Jobs {
-		if _, exist := mc.jobPool[jobID]; !exist {
+		if _, exist := mc.jobPool[jobID]; !exist && !isFinishedJob(job) {
 			mc.jobPool[jobID] = initJobStatistics()
 			// userJob should only be inserted when job first met
 			mc.userJob[job.Queue][job.UID] = struct{}{}

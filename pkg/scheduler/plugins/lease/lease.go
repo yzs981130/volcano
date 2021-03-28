@@ -131,6 +131,9 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			}
 			lp.updateJobFairness(attr)
 			lp.jobAttrs[job.UID] = attr
+		} else {
+			// delete job from active job
+			lp.mc.Delete(job.UID)
 		}
 	}
 
