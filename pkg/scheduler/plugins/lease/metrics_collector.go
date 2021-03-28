@@ -80,26 +80,38 @@ func NewMetricsCollector(_period time.Duration, _ssn *framework.Session, _lp *le
 	}
 }
 
-func (mc *MetricsCollector) routineUpdateJobStatistics(jobID api.JobID, stat *jobStatistics, wg *sync.WaitGroup) {
+func (mc *MetricsCollector) routineUpdateJobStatistics(jobID api.JobID, stat *jobStatistics, jobNum int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	stat.TotalLifeTime += mc.period
 
 	job := mc.ssn.Jobs[jobID]
+
+	// share = weighted * total
+	share := 1.0 / float64(jobNum) * mc.clusterTotalGPU
+	var min float64
+	if share < getJobGPUReq(job) {
+		min = share
+	} else {
+		min = getJobGPUReq(job)
+	}
+	stat.Deserved += min * mc.period.Seconds()
 
 	if job.PodGroup.Status.Phase == scheduling.PodGroupRunning {
 		stat.TotalExecutedTime += mc.period
 		stat.ExecutedTimeInLastLease += mc.period
 
 		stat.Utilized += getJobGPUReq(job) * mc.period.Seconds()
-		stat.Deserved += 1.0 / float64(len(mc.jobPool)) * mc.period.Seconds()
 	}
 }
 
 func (mc *MetricsCollector) routineUpdateUserStatistics(user api.QueueID, wg *sync.WaitGroup) {
 	defer wg.Done()
-	// TODO: weighted += quota * time
 	var weighted, utilized, demand float64
 	var deserved float64
+
+	quotaRatio := mc.ssn.Queues[user].QuotaRatio
+	weighted = quotaRatio * mc.period.Seconds()
+
 	for jobID := range mc.userJob[user] {
 		job := mc.ssn.Jobs[jobID]
 		if job.PodGroup.Status.Phase == scheduling.PodGroupRunning {
@@ -149,10 +161,16 @@ func (mc *MetricsCollector) worker() {
 		mc.resetUserFairness()
 	}
 
+	// update metrics according to the most updated jobs and queues info from session
+	mc.addIfNotExist()
+
+	activeJobCnt := mc.getActiveJobCnt()
+
 	wg := sync.WaitGroup{}
 	for job, stat := range mc.jobPool {
 		wg.Add(1)
-		go mc.routineUpdateJobStatistics(job, stat, &wg)
+		// TODO: use activeJobCnt as pending+running, pay attention to sub-job condition
+		go mc.routineUpdateJobStatistics(job, stat, activeJobCnt, &wg)
 	}
 	wg.Wait()
 
@@ -271,4 +289,11 @@ func (mc *MetricsCollector) GetUserStatistics(queue api.QueueID) (*userStatistic
 
 func (mc *MetricsCollector) getJobQueue(job api.JobID) api.QueueID {
 	return mc.ssn.Jobs[job].Queue
+}
+
+func (mc *MetricsCollector) getActiveJobCnt() (activeJobCnt int) {
+	for user := range mc.userJob {
+		activeJobCnt += len(mc.userJob[user])
+	}
+	return activeJobCnt
 }

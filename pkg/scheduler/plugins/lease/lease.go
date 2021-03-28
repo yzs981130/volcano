@@ -44,6 +44,8 @@ type queueAttr struct {
 	newQuota  float64
 	utilized  float64
 	weighted  float64
+	deserved  float64
+	fairness  float64
 
 	allocated *api.Resource
 }
@@ -76,19 +78,25 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		lp.mc = NewMetricsCollector(10*time.Second, ssn, lp)
 	}
 
+	// call metrics collector
+	lp.mc.RunOnce()
+
 	// Job selection func
-	// TODO: update jobAttrs.fairness
 	for _, job := range ssn.Jobs {
 		if !isFinishedJob(job) {
-			if _, found := lp.jobAttrs[job.UID]; !found {
-				// TODO: get job utilized & deserved from job.PodGroup
-				attr := &jobAttr{
-					utilized: 0,
-					deserved: 0,
-				}
-				lp.updateJobFairness(attr)
-				lp.jobAttrs[job.UID] = attr
+			// get job utilized and deserved from mc
+			jobStat, err := lp.mc.GetJobStatistics(job.UID)
+			if err != nil {
+				// not found in mc, will never happen
+				continue
 			}
+			// store in lp.jobAttrs
+			attr := &jobAttr{
+				utilized: jobStat.Utilized,
+				deserved: jobStat.Deserved,
+			}
+			lp.updateJobFairness(attr)
+			lp.jobAttrs[job.UID] = attr
 		}
 	}
 
@@ -208,19 +216,26 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 
 	// build up queues
 	for _, queue := range ssn.Queues {
-		// if not cached
-		if _, found := lp.queueOpts[queue.UID]; !found {
-			attr := &queueAttr{
-				queueID:    queue.UID,
-				name:       queue.Name,
-				quotaRatio: queue.QuotaRatio,
-				// for overused
-				allocated: api.EmptyResource(),
-				// TODO: store & calculate user fairness related historical information
-
-			}
-			lp.queueOpts[queue.UID] = attr
+		// get queue metrics from mc
+		userStat, err := lp.mc.GetUserStatistics(queue.UID)
+		if err != nil {
+			// should never happen
+			continue
 		}
+		attr := &queueAttr{
+			queueID:    queue.UID,
+			name:       queue.Name,
+			quotaRatio: queue.QuotaRatio,
+			// for overused
+			allocated: api.EmptyResource(),
+			// FIXED: store & calculate user fairness related historical information
+			// get utilized/weighted/deserved from metrics
+			utilized: userStat.utilized,
+			weighted: userStat.weighted,
+			deserved: userStat.deserved,
+		}
+		lp.updateUserFairness(attr)
+		lp.queueOpts[queue.UID] = attr
 	}
 
 	// build up scheduling information:
@@ -370,7 +385,17 @@ func (lp *leasePlugin) selectUser() api.QueueID {
 }
 
 func (lp *leasePlugin) updateUserFairness(attr *queueAttr) {
-	attr.uDivideW = attr.utilized / attr.weighted
+	if attr.weighted == 0 {
+		attr.uDivideW = 1
+	} else {
+		attr.uDivideW = attr.utilized / attr.weighted
+	}
+
+	if attr.deserved == 0 {
+		attr.fairness = 1
+	} else {
+		attr.fairness = attr.utilized / attr.deserved
+	}
 }
 
 func (lp *leasePlugin) updateJobFairness(attr *jobAttr) {
