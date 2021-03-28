@@ -29,8 +29,9 @@ type leasePlugin struct {
 	// Key is Job ID
 	jobAttrs map[api.JobID]*jobAttr
 
-	queueOpts     map[api.QueueID]*queueAttr
-	totalResource *api.Resource
+	queueOpts         map[api.QueueID]*queueAttr
+	totalFreeResource *api.Resource
+	totalResource	  *api.Resource
 
 	firstRun bool
 	mc       *MetricsCollector
@@ -64,10 +65,11 @@ type jobAttr struct {
 func New(arguments framework.Arguments) framework.Plugin {
 	once.Do(func() {
 		leaseInstance = &leasePlugin{
-			pluginArguments: arguments,
-			jobAttrs:        map[api.JobID]*jobAttr{},
-			queueOpts:       map[api.QueueID]*queueAttr{},
-			totalResource:   api.EmptyResource(),
+			pluginArguments:   arguments,
+			jobAttrs:          map[api.JobID]*jobAttr{},
+			queueOpts:         map[api.QueueID]*queueAttr{},
+			totalFreeResource: api.EmptyResource(),
+			totalResource: 	   api.EmptyResource(),
 
 			firstRun: true,
 		}
@@ -84,6 +86,24 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	if lp.firstRun {
 		lp.mc = NewMetricsCollector(10*time.Second, ssn, lp)
 	}
+
+	for _, n := range ssn.Nodes {
+		lp.totalFreeResource.Add(n.Allocatable)
+		lp.totalResource.Add(n.Capability)
+	}
+
+	klog.V(4).Infof("The total resource is <%v>, total free resource is <%v>", lp.totalResource, lp.totalFreeResource)
+
+	// build up scheduling information:
+	totalFreeGPU := lp.totalFreeResource.ScalarResources[api.GPUResourceName]
+	totalGPU := lp.totalResource.ScalarResources[api.GPUResourceName]
+	// all pending job map
+	pendingJobs := map[api.JobID]struct{}{}
+	// user->pending_job
+	userJobMap := map[api.QueueID]*schedulerutil.PriorityQueue{}
+
+	// set cluster size in mc
+	lp.mc.SetClusterSize(totalGPU)
 
 	// call metrics collector
 	lp.mc.RunOnce()
@@ -215,11 +235,6 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	// Get job information and resource information directly from ssn.Jobs and ssn.Nodes to build queue
 	// After building up queue, use ssn.AddQueueOrderFn to utilize user-level fairness
 
-	for _, n := range ssn.Nodes {
-		lp.totalResource.Add(n.Allocatable)
-	}
-
-	klog.V(4).Infof("The total resource is <%v>", lp.totalResource)
 
 	// build up queues
 	for _, queue := range ssn.Queues {
@@ -244,13 +259,6 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		lp.updateUserFairness(attr)
 		lp.queueOpts[queue.UID] = attr
 	}
-
-	// build up scheduling information:
-	totalFreeGPU := lp.totalResource.ScalarResources[api.GPUResourceName]
-	// all pending job map
-	pendingJobs := map[api.JobID]struct{}{}
-	// user->pending_job
-	userJobMap := map[api.QueueID]*schedulerutil.PriorityQueue{}
 
 	for _, job := range ssn.Jobs {
 		// add all pending job
@@ -334,6 +342,7 @@ func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 	lp.jobAttrs = map[api.JobID]*jobAttr{}
 	// clear queueOpts
 	lp.queueOpts = map[api.QueueID]*queueAttr{}
+	lp.totalFreeResource = api.EmptyResource()
 	lp.totalResource = api.EmptyResource()
 
 	lp.firstRun = false
