@@ -74,7 +74,7 @@ func NewMetricsCollector(_period time.Duration, _ssn *framework.Session, _lp *le
 		lp:  _lp,
 
 		// 3600 second
-		userFairnessResetInterval: 360,
+		userFairnessResetInterval: 3600,
 		currentInterval:           0,
 		longTermIntervalCnt:       24,
 	}
@@ -172,9 +172,7 @@ func (mc *MetricsCollector) worker() {
 		// TODO: use activeJobCnt as pending+running, pay attention to sub-job condition
 		go mc.routineUpdateJobStatistics(job, stat, activeJobCnt, &wg)
 	}
-	wg.Wait()
 
-	wg = sync.WaitGroup{}
 	for user := range mc.userPool {
 		wg.Add(1)
 		go mc.routineUpdateUserStatistics(user, &wg)

@@ -31,7 +31,7 @@ type leasePlugin struct {
 
 	queueOpts         map[api.QueueID]*queueAttr
 	totalFreeResource *api.Resource
-	totalResource	  *api.Resource
+	totalResource     *api.Resource
 
 	firstRun bool
 	mc       *MetricsCollector
@@ -52,6 +52,7 @@ type queueAttr struct {
 	deserved  float64
 	fairness  float64
 
+	// only use allocated for ssn.overused
 	allocated *api.Resource
 }
 
@@ -69,7 +70,7 @@ func New(arguments framework.Arguments) framework.Plugin {
 			jobAttrs:          map[api.JobID]*jobAttr{},
 			queueOpts:         map[api.QueueID]*queueAttr{},
 			totalFreeResource: api.EmptyResource(),
-			totalResource: 	   api.EmptyResource(),
+			totalResource:     api.EmptyResource(),
 
 			firstRun: true,
 		}
@@ -84,7 +85,8 @@ func (lp *leasePlugin) Name() string {
 func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	// if first run, init metrics collector
 	if lp.firstRun {
-		lp.mc = NewMetricsCollector(10*time.Second, ssn, lp)
+		// mc.RunOnce is called according to session, should be set to scheduler.period
+		lp.mc = NewMetricsCollector(time.Second, ssn, lp)
 	}
 
 	for _, n := range ssn.Nodes {
@@ -115,6 +117,11 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			jobStat, err := lp.mc.GetJobStatistics(job.UID)
 			if err != nil {
 				// not found in mc, will never happen
+				lp.jobAttrs[job.UID] = &jobAttr{
+					utilized: 0,
+					deserved: 0,
+					fairness: 1,
+				}
 				continue
 			}
 			// store in lp.jobAttrs
@@ -234,7 +241,6 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	// We need calculate deserved/allocated of every queue to utilize user-level fairness
 	// Get job information and resource information directly from ssn.Jobs and ssn.Nodes to build queue
 	// After building up queue, use ssn.AddQueueOrderFn to utilize user-level fairness
-
 
 	// build up queues
 	for _, queue := range ssn.Queues {
