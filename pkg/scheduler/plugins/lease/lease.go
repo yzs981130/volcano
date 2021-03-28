@@ -8,11 +8,15 @@ import (
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/consolidate"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/plugins/util/k8s"
 	schedulerutil "pkg.yezhisheng.me/volcano/pkg/scheduler/util"
+	"sync"
 	"time"
 
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
 )
+
+var once sync.Once
+var leaseInstance framework.Plugin
 
 // PluginName indicates name of volcano scheduler plugin.
 const PluginName = "lease"
@@ -58,14 +62,17 @@ type jobAttr struct {
 
 // New return priority plugin
 func New(arguments framework.Arguments) framework.Plugin {
-	return &leasePlugin{
-		pluginArguments: arguments,
-		jobAttrs:        map[api.JobID]*jobAttr{},
-		queueOpts:       map[api.QueueID]*queueAttr{},
-		totalResource:   api.EmptyResource(),
+	once.Do(func() {
+		leaseInstance = &leasePlugin{
+			pluginArguments: arguments,
+			jobAttrs:        map[api.JobID]*jobAttr{},
+			queueOpts:       map[api.QueueID]*queueAttr{},
+			totalResource:   api.EmptyResource(),
 
-		firstRun: true,
-	}
+			firstRun: true,
+		}
+	})
+	return leaseInstance
 }
 
 func (lp *leasePlugin) Name() string {
