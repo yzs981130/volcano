@@ -37,11 +37,8 @@ func OpenSession(cache cache.Cache, tiers []conf.Tier, configurations []conf.Con
 			if pb, found := GetPluginBuilder(plugin.Name); !found {
 				klog.Errorf("Failed to get plugin %s.", plugin.Name)
 			} else {
-				// only call pb when not exists
-				if _, exist := ssn.plugins[plugin.Name]; !exist {
-					plugin := pb(plugin.Arguments)
-					ssn.plugins[plugin.Name()] = plugin
-				}
+				plugin := pb(plugin.Arguments)
+				ssn.plugins[plugin.Name()] = plugin
 			}
 		}
 	}
