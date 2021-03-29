@@ -128,6 +128,24 @@ var (
 			Help:      "Number of jobs could not be scheduled",
 		},
 	)
+
+	jobTotalDuration = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Subsystem: VolcanoNamespace,
+			Name:      "job_total_duration",
+			Help:      "Job total duration in cluster",
+		},
+		[]string{"job_name"},
+	)
+
+	jobTotalPending = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Subsystem: VolcanoNamespace,
+			Name:      "job_total_pending",
+			Help:      "Job total pending time in cluster",
+		},
+		[]string{"job_name"},
+	)
 )
 
 // UpdatePluginDuration updates latency for every plugin
@@ -179,6 +197,16 @@ func UpdateUnscheduleTaskCount(jobID string, taskCount int) {
 // UpdateUnscheduleJobCount records total number of unscheduleable jobs
 func UpdateUnscheduleJobCount(jobCount int) {
 	unscheduleJobCount.Set(float64(jobCount))
+}
+
+// UpdateJobTotalDuration records job total lifetime
+func UpdateJobTotalDuration(jobName string, duration time.Duration) {
+	jobTotalDuration.WithLabelValues(jobName).Set(DurationInSeconds(duration))
+}
+
+// UpdateJobTotalPending updates pending time
+func UpdateJobTotalPending(jobName string, duration time.Duration) {
+	jobTotalPending.WithLabelValues(jobName).Add(DurationInSeconds(duration))
 }
 
 // DurationInMicroseconds gets the time in microseconds.
