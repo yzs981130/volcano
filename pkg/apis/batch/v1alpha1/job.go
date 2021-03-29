@@ -97,6 +97,25 @@ type JobSpec struct {
 	// If specified, indicates the job's priority.
 	// +optional
 	PriorityClassName string `json:"priorityClassName,omitempty" protobuf:"bytes,10,opt,name=priorityClassName"`
+
+	// total sub lease job it can be divided into
+	// +optional
+	TotalLeaseJobCnt int32 `json:"total_lease_cnt,omitempty"`
+
+	// +optional
+	CurrentLeaseJobCnt int32 `json:"current_lease_job_cnt,omitempty"`
+
+	// +optional
+	JobGroupCreationTimeStamp *metav1.Time `json:"job_group_creation_time_stamp,omitempty"`
+
+	// +optional
+	CurrentJobScheduledTimeStamp *metav1.Time `json:"current_job_scheduled_time_stamp,omitempty"`
+
+	// +optional
+	FormerJobDeletionTimeStamp *metav1.Time `json:"former_job_deletion_time_stamp,omitempty"`
+
+	// +optional
+	JobGroupName string `json:"job_group_name,omitempty"`
 }
 
 // VolumeSpec defines the specification of Volume, e.g. PVC.
