@@ -185,6 +185,26 @@ type PodGroupSpec struct {
 	// if there's not enough resources to start all tasks, the scheduler
 	// will not start anyone.
 	MinResources *v1.ResourceList `json:"minResources,omitempty" protobuf:"bytes,4,opt,name=minResources"`
+
+	// copy from lease related job.Spec
+	// total sub lease job it can be divided into
+	// +optional
+	TotalLeaseJobCnt int32 `json:"total_lease_cnt,omitempty"`
+
+	// +optional
+	CurrentLeaseJobCnt int32 `json:"current_lease_job_cnt,omitempty"`
+
+	// +optional
+	JobGroupCreationTimeStamp *metav1.Time `json:"job_group_creation_time_stamp,omitempty"`
+
+	// +optional
+	CurrentJobScheduledTimeStamp *metav1.Time `json:"current_job_scheduled_time_stamp,omitempty"`
+
+	// +optional
+	FormerJobDeletionTimeStamp *metav1.Time `json:"former_job_deletion_time_stamp,omitempty"`
+
+	// +optional
+	JobGroupName string `json:"job_group_name,omitempty"`
 }
 
 // PodGroupStatus represents the current state of a pod group.
