@@ -23,15 +23,15 @@ type leasePlugin struct {
 	client pluginsinterface.PluginClientset
 }
 
-func (lp leasePlugin) Name() string {
+func (lp *leasePlugin) Name() string {
 	return "lease"
 }
 
-func (lp leasePlugin) OnPodCreate(pod *v1.Pod, job *v1alpha1.Job) error {
+func (lp *leasePlugin) OnPodCreate(pod *v1.Pod, job *v1alpha1.Job) error {
 	return nil
 }
 
-func (lp leasePlugin) OnJobAdd(job *v1alpha1.Job) error {
+func (lp *leasePlugin) OnJobAdd(job *v1alpha1.Job) error {
 	// filter normal job
 	if job.Spec.TotalLeaseJobCnt == 0 {
 		return nil
@@ -48,7 +48,7 @@ func (lp leasePlugin) OnJobAdd(job *v1alpha1.Job) error {
 	return nil
 }
 
-func (lp leasePlugin) OnJobDelete(job *v1alpha1.Job) error {
+func (lp *leasePlugin) OnJobDelete(job *v1alpha1.Job) error {
 	// TODO: set ttlSeconds in a proper time (checkpoint time)
 	// when job finishes, get job index and total cnt
 
@@ -71,7 +71,7 @@ func (lp leasePlugin) OnJobDelete(job *v1alpha1.Job) error {
 	return err
 }
 
-func (lp leasePlugin) OnJobUpdate(job *v1alpha1.Job) error {
+func (lp *leasePlugin) OnJobUpdate(job *v1alpha1.Job) error {
 	return nil
 }
 
