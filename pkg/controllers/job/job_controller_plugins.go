@@ -28,7 +28,7 @@ import (
 )
 
 func (cc *jobcontroller) pluginOnPodCreate(job *batch.Job, pod *v1.Pod) error {
-	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient}
+	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient, VcClients: cc.vcClient}
 	for name, args := range job.Spec.Plugins {
 		pb, found := plugins.GetPluginBuilder(name)
 		if !found {
@@ -47,7 +47,7 @@ func (cc *jobcontroller) pluginOnPodCreate(job *batch.Job, pod *v1.Pod) error {
 }
 
 func (cc *jobcontroller) pluginOnJobAdd(job *batch.Job) error {
-	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient}
+	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient, VcClients: cc.vcClient}
 	if job.Status.ControlledResources == nil {
 		job.Status.ControlledResources = make(map[string]string)
 	}
@@ -73,7 +73,7 @@ func (cc *jobcontroller) pluginOnJobDelete(job *batch.Job) error {
 	if job.Status.ControlledResources == nil {
 		job.Status.ControlledResources = make(map[string]string)
 	}
-	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient}
+	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient, VcClients: cc.vcClient}
 	for name, args := range job.Spec.Plugins {
 		pb, found := plugins.GetPluginBuilder(name)
 		if !found {
@@ -93,7 +93,7 @@ func (cc *jobcontroller) pluginOnJobDelete(job *batch.Job) error {
 }
 
 func (cc *jobcontroller) pluginOnJobUpdate(job *batch.Job) error {
-	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient}
+	client := pluginsinterface.PluginClientset{KubeClients: cc.kubeClient, VcClients: cc.vcClient}
 	if job.Status.ControlledResources == nil {
 		job.Status.ControlledResources = make(map[string]string)
 	}

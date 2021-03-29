@@ -19,6 +19,7 @@ package pluginsinterface
 import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
+	vcclientset "pkg.yezhisheng.me/volcano/pkg/client/clientset/versioned"
 
 	vcbatch "pkg.yezhisheng.me/volcano/pkg/apis/batch/v1alpha1"
 )
@@ -26,6 +27,7 @@ import (
 // PluginClientset clientset.
 type PluginClientset struct {
 	KubeClients kubernetes.Interface
+	VcClients   vcclientset.Interface
 }
 
 // PluginInterface interface.
