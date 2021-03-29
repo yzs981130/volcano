@@ -494,6 +494,13 @@ func (cc *jobcontroller) createOrUpdatePodGroup(job *batch.Job) error {
 				Queue:             job.Spec.Queue,
 				MinResources:      cc.calcPGMinResources(job),
 				PriorityClassName: job.Spec.PriorityClassName,
+
+				TotalLeaseJobCnt:             job.Spec.TotalLeaseJobCnt,
+				CurrentLeaseJobCnt:           job.Spec.CurrentLeaseJobCnt,
+				JobGroupCreationTimeStamp:    job.Spec.JobGroupCreationTimeStamp,
+				CurrentJobScheduledTimeStamp: job.Spec.CurrentJobScheduledTimeStamp,
+				FormerJobDeletionTimeStamp:   job.Spec.FormerJobDeletionTimeStamp,
+				JobGroupName:                 job.Spec.JobGroupName,
 			},
 		}
 
@@ -510,6 +517,23 @@ func (cc *jobcontroller) createOrUpdatePodGroup(job *batch.Job) error {
 	if pg.Spec.MinMember != job.Spec.MinAvailable {
 		pg.Spec.MinMember = job.Spec.MinAvailable
 		pg.Spec.MinResources = cc.calcPGMinResources(job)
+		if _, err = cc.vcClient.SchedulingV1beta1().PodGroups(job.Namespace).Update(context.TODO(), pg, metav1.UpdateOptions{}); err != nil {
+			if !apierrors.IsAlreadyExists(err) {
+				klog.V(3).Infof("Failed to create PodGroup for Job <%s/%s>: %v",
+					job.Namespace, job.Name, err)
+				return err
+			}
+		}
+	}
+
+	// update job.spec to podgroup
+	if isLeaseSpecUpdated(pg.Spec, job.Spec) {
+		pg.Spec.TotalLeaseJobCnt = job.Spec.TotalLeaseJobCnt
+		pg.Spec.CurrentLeaseJobCnt = job.Spec.CurrentLeaseJobCnt
+		pg.Spec.JobGroupCreationTimeStamp = job.Spec.JobGroupCreationTimeStamp
+		pg.Spec.CurrentJobScheduledTimeStamp = job.Spec.CurrentJobScheduledTimeStamp
+		pg.Spec.FormerJobDeletionTimeStamp = job.Spec.FormerJobDeletionTimeStamp
+		pg.Spec.JobGroupName = job.Spec.JobGroupName
 		if _, err = cc.vcClient.SchedulingV1beta1().PodGroups(job.Namespace).Update(context.TODO(), pg, metav1.UpdateOptions{}); err != nil {
 			if !apierrors.IsAlreadyExists(err) {
 				klog.V(3).Infof("Failed to create PodGroup for Job <%s/%s>: %v",
@@ -630,5 +654,9 @@ func isInitiated(job *batch.Job) bool {
 		return false
 	}
 
+	return true
+}
+
+func isLeaseSpecUpdated(spec scheduling.PodGroupSpec, jobSpec batch.JobSpec) bool {
 	return true
 }
