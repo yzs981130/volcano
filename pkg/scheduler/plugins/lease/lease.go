@@ -83,6 +83,23 @@ func New(arguments framework.Arguments) framework.Plugin {
 	}
 }
 
+
+func (lp *leasePlugin) SummaryCluster(ssn *framework.Session) {
+	all_running_resource, all_running_numer := 0, 0
+	all_pending_resource, all_pending_number := 0, 0
+	
+	for _, job := range ssn.Jobs {
+		if !isFinished(job) {
+			if isRunning(job) {
+				all_running_resource += int(getJobGPUReq(job))
+			} else {
+				all_pending_resoure += int(getJobGPUReq(job))
+			}
+		}
+	}
+}
+
+
 func (lp *leasePlugin) Name() string {
 	return PluginName
 }
@@ -338,7 +355,7 @@ func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 }
 
 func isRunningJob(job *api.JobInfo) bool {
-	for status := range job.TaskStatusIndex {
+	for _, status := range job.TaskStatusIndex {
 		if status != api.RUNNING {
 			return false
 	}
@@ -347,7 +364,7 @@ func isRunningJob(job *api.JobInfo) bool {
 
 // check if job need scheduling
 func isPendingJob(job *api.JobInfo) bool {
-	for status := range job.TaskStatusIndex {
+	for _, status := range job.TaskStatusIndex {
 		if status != api.Pending {
 			return false
 		}
@@ -383,3 +400,4 @@ func computeEmergence(remainingTime int, reqResource int) int {
 func computeMaximumLease(expectMaximumEndTime int, leaseTerm int, curLeaseIndex int) int {
 	return int(math.Floor(float64(expectMaximumEndTime)/float64(leaseTerm))) - curLeaseIndex
 }
+
