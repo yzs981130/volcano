@@ -32,8 +32,18 @@ func (lp leasePlugin) OnPodCreate(pod *v1.Pod, job *v1alpha1.Job) error {
 }
 
 func (lp leasePlugin) OnJobAdd(job *v1alpha1.Job) error {
+	// filter normal job
+	if job.Spec.TotalLeaseJobCnt == 0 {
+		return nil
+	}
+
 	// every job name should be "whateverJobName-1"
 	job.Spec.JobGroupName = job.Name[:strings.LastIndex(job.Name, "-")]
+
+	// if first sub job
+	if job.Spec.CurrentLeaseJobCnt == 1 {
+		job.Spec.JobGroupCreationTimeStamp = &job.CreationTimestamp
+	}
 
 	return nil
 }
