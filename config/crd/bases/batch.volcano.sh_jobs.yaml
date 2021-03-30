@@ -41,6 +41,20 @@ spec:
           description: Specification of the desired behavior of the volcano job, including
             the minAvailable
           properties:
+            current_job_scheduled_time_stamp:
+              format: date-time
+              type: string
+            current_lease_job_cnt:
+              format: int32
+              type: integer
+            former_job_deletion_time_stamp:
+              format: date-time
+              type: string
+            job_group_creation_time_stamp:
+              format: date-time
+              type: string
+            job_group_name:
+              type: string
             maxRetry:
               description: Specifies the maximum number of retries before marking
                 this Job failed. Defaults to 3.
@@ -6327,6 +6341,10 @@ spec:
                     type: object
                 type: object
               type: array
+            total_lease_cnt:
+              description: total sub lease job it can be divided into
+              format: int32
+              type: integer
             ttlSecondsAfterFinished:
               description: ttlSecondsAfterFinished limits the lifetime of a Job that
                 has finished execution (either Completed or Failed). If this field

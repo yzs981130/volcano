@@ -41,6 +41,20 @@ spec:
           description: 'Specification of the desired behavior of the pod group. More
             info: https://git.k8s.io/community/contributors/devel/api-conventions.md#spec-and-status'
           properties:
+            current_job_scheduled_time_stamp:
+              format: date-time
+              type: string
+            current_lease_job_cnt:
+              format: int32
+              type: integer
+            former_job_deletion_time_stamp:
+              format: date-time
+              type: string
+            job_group_creation_time_stamp:
+              format: date-time
+              type: string
+            job_group_name:
+              type: string
             minMember:
               description: MinMember defines the minimal number of members/tasks to
                 run the pod group; if there's not enough resources to start all tasks,
@@ -71,6 +85,11 @@ spec:
                 if queue does not exist, the PodGroup will not be scheduled. Defaults
                 to `default` Queue with the lowest weight.
               type: string
+            total_lease_cnt:
+              description: copy from lease related job.Spec total sub lease job it
+                can be divided into
+              format: int32
+              type: integer
           type: object
         status:
           description: Status represents the current information about a pod group.
