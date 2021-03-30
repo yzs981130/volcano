@@ -658,5 +658,5 @@ func isInitiated(job *batch.Job) bool {
 }
 
 func isLeaseSpecUpdated(spec scheduling.PodGroupSpec, jobSpec batch.JobSpec) bool {
-	return true
+	return spec.TotalLeaseJobCnt != jobSpec.TotalLeaseJobCnt || spec.CurrentLeaseJobCnt != jobSpec.CurrentLeaseJobCnt || spec.JobGroupCreationTimeStamp != jobSpec.JobGroupCreationTimeStamp || spec.CurrentJobScheduledTimeStamp != jobSpec.CurrentJobScheduledTimeStamp || spec.FormerJobDeletionTimeStamp != jobSpec.FormerJobDeletionTimeStamp || spec.JobGroupName != jobSpec.JobGroupName
 }
