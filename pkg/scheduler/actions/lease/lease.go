@@ -5,7 +5,9 @@ import (
 	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/framework"
+	"pkg.yezhisheng.me/volcano/pkg/scheduler/metrics"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/util"
+	"time"
 )
 
 type Action struct {
@@ -130,37 +132,9 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// because the allocation of job would change the priority of queue among all namespaces,
 		// and the PriorityQueue have no ability to update priority for a special queue.
 
-		// Finished: Do scheduling on queue(pending jobs in queue v.s. queue.quota)
-		// select job by jobOrderFn, with resource restriction of queue.quota
-
-		// Finished: extra logic for lease renewal job
-		// Do scheduling twice with renewal job and without job
-		// different logic in committing scheduling results according to job type
-
-		// first scheduling begins
-		// job: pending + lease renewing
-		// resource: free capacity + lease renewing job
-
-		// snapshot current resource and job status
-		ssn.Snapshot()
-		// set resource occupied by renewing job to free
-		for _, job := range renewingJobList {
-			reclaimJobResource(ssn, job)
-			// update queue quota usage (in deallocateJobFn)
-			ssn.DeallocateJob(job)
-		}
-		allocatedJobList := la.scheduling(ssn, queueInNamespace, allNodes, predicateFn, renewalFilter)
-		// restore former resource and job status
-		// update queue quota usage (in deallocateJobFn)
-		for _, job := range allocatedJobList {
-			ssn.DeallocateJob(job)
-		}
-		for _, job := range renewingJobList {
-			ssn.AllocateJob(job)
-		}
-		// RestoreLastSnapshot only considers ssn.Node/Jobs/Queues information
-		ssn.RestoreLastSnapshot()
-		// first scheduling ends
+		// TODO: scheduling every pending job like allocate.go
+		// update: UpdateJobTotalPending when job get scheduled with "now - last"
+		// Remove two-level scheduling mechanism, do scheduling on all pending jobs
 
 		// second scheduling begins
 		// job: pending job
@@ -170,16 +144,6 @@ func (la *Action) Execute(ssn *framework.Session) {
 
 		// collect scheduling result
 		stmt := framework.NewStatement(ssn)
-		// for all lease renewing job, if in allocatedJobList, return true
-		for _, job := range allocatedJobList {
-			if _, exist := renewingJobMap[job]; exist {
-				renewalSucceedJob(ssn, job)
-				delete(renewingJobMap, job)
-			}
-		}
-		for job := range renewingJobMap {
-			renewalFailedJob(ssn, job)
-		}
 		// for all job in allocatedJobList2, allocate job task
 		for _, job := range allocatedJobList2 {
 			for _, task := range job.Tasks {
@@ -189,6 +153,22 @@ func (la *Action) Execute(ssn *framework.Session) {
 				} else if task.Status == api.Allocated {
 					_ = stmt.Allocate(task, task.NodeName)
 				}
+			}
+			// update job pending time
+			// if job is first job of jobGroup
+			if job.PodGroup.Spec.CurrentLeaseJobCnt == 1 {
+				metrics.UpdateJobTotalPending(jobKey(job), metrics.Duration(job.PodGroup.Spec.JobGroupCreationTimeStamp.Time))
+			} else {
+				metrics.UpdateJobTotalPending(jobKey(job), metrics.Duration(job.PodGroup.Spec.FormerJobDeletionTimeStamp.Time))
+			}
+			// need scheduler action be idempotent?
+			// update renewal succeed or failed information
+			if isNeedColdStart(job) {
+				metrics.RegisterJobColdStartCount(jobKey(job))
+			}
+			// if job is not first, the former job must experience a lease expiry
+			if job.PodGroup.Spec.CurrentLeaseJobCnt != 1 {
+				metrics.RegisterJobCheckpointCount(jobKey(job))
 			}
 		}
 
@@ -353,17 +333,32 @@ func reclaimJobResource(ssn *framework.Session, job *api.JobInfo) {
 	}
 }
 
-func renewalSucceedJob(ssn *framework.Session, job *api.JobInfo) {
-
-}
-
-func renewalFailedJob(ssn *framework.Session, job *api.JobInfo) {
-
-}
-
 func (la *Action) getIsBlock(ssn *framework.Session) {
 	arg := framework.GetArgOfActionFromConf(ssn.Configurations, la.Name())
 	if arg != nil {
 		arg.GetBool(&la.isBlock, blockScheduling)
 	}
+}
+
+func jobKey(job *api.JobInfo) string {
+	return job.PodGroup.Spec.JobGroupName
+}
+
+func isFormerJobJustFinished(job *api.JobInfo) bool {
+	// must have former job
+	// if former job has not finished, return true
+	// if former job is finished within a threshold, return true
+	return job.PodGroup.Spec.CurrentLeaseJobCnt > 1 && (job.PodGroup.Spec.FormerJobDeletionTimeStamp == nil || job.PodGroup.Spec.FormerJobDeletionTimeStamp.Add(5 * time.Second).After(time.Now()))
+}
+
+func isNeedColdStart(job *api.JobInfo) bool {
+	// first job needs cold start
+	if job.PodGroup.Spec.CurrentLeaseJobCnt == 1 {
+		return true
+	}
+	// if not first job, only isFormerJobJustFinished(job) don't need cold start
+	if !isFormerJobJustFinished(job) {
+		return true
+	}
+	return false
 }

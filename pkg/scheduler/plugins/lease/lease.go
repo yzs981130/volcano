@@ -36,6 +36,8 @@ type leasePlugin struct {
 	queueOpts         map[api.QueueID]*queueAttr
 	totalFreeResource *api.Resource
 	totalResource     *api.Resource
+	// finished job group cache, key is job group name
+	finishedJob		map[string]struct{}
 
 	firstRun bool
 	mc       *MetricsCollector
@@ -75,6 +77,7 @@ func New(arguments framework.Arguments) framework.Plugin {
 			queueOpts:         map[api.QueueID]*queueAttr{},
 			totalFreeResource: api.EmptyResource(),
 			totalResource:     api.EmptyResource(),
+			finishedJob: 	   make(map[string]struct{}),
 
 			firstRun: true,
 		}
@@ -116,29 +119,34 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 
 	// Job selection func
 	for _, job := range ssn.Jobs {
-		if !isFinishedJob(job) {
-			// get job utilized and deserved from mc
-			jobStat, err := lp.mc.GetJobStatistics(jobKey(job))
-			if err != nil {
-				// not found in mc, will never happen
-				lp.jobAttrs[jobKey(job)] = &jobAttr{
-					utilized: 0,
-					deserved: 0,
-					fairness: 1,
-				}
-				continue
-			}
-			// store in lp.jobAttrs
-			attr := &jobAttr{
-				utilized: jobStat.Utilized,
-				deserved: jobStat.Deserved,
-			}
-			lp.updateJobFairness(attr)
-			lp.jobAttrs[jobKey(job)] = attr
-		} else {
-			// delete job from active job
-			lp.mc.Delete(job)
+		// check if finished
+		if _, exist := lp.finishedJob[jobKey(job)]; exist {
+			continue
 		}
+		// check if last finished job
+		if isFinishedJob(job) && isLastJob(job) {
+			lp.finishedJob[jobKey(job)] = struct{}{}
+			lp.mc.Delete(job)
+			continue
+		}
+		// get job utilized and deserved from mc
+		jobStat, err := lp.mc.GetJobStatistics(jobKey(job))
+		if err != nil {
+			// not found in mc, will never happen
+			lp.jobAttrs[jobKey(job)] = &jobAttr{
+				utilized: 0,
+				deserved: 0,
+				fairness: 1,
+			}
+			continue
+		}
+		// store in lp.jobAttrs
+		attr := &jobAttr{
+			utilized: jobStat.Utilized,
+			deserved: jobStat.Deserved,
+		}
+		lp.updateJobFairness(attr)
+		lp.jobAttrs[jobKey(job)] = attr
 	}
 
 	// use lp.jobAttrs[lv.UID].fairness for job selection
@@ -380,6 +388,10 @@ func isFinishedJob(job *api.JobInfo) bool {
 		}
 	}
 	return true
+}
+
+func isLastJob(job *api.JobInfo) bool {
+	return job.PodGroup.Spec.TotalLeaseJobCnt == job.PodGroup.Spec.CurrentLeaseJobCnt
 }
 
 func getJobGPUReq(job *api.JobInfo) float64 {
