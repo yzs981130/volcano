@@ -146,6 +146,22 @@ var (
 		},
 		[]string{"job_name"},
 	)
+
+	jobColdStartCount = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Subsystem: VolcanoNamespace,
+			Name:      "job_cold_start_count",
+			Help:      "Total job cold start counts",
+		}, []string{"job_name"},
+	)
+
+	jobCheckpointCount = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Subsystem: VolcanoNamespace,
+			Name:      "job_checkpoint_count",
+			Help:      "Total job checkpoint counts",
+		}, []string{"job_name"},
+	)
 )
 
 // UpdatePluginDuration updates latency for every plugin
@@ -207,6 +223,16 @@ func UpdateJobTotalDuration(jobName string, duration time.Duration) {
 // UpdateJobTotalPending updates pending time
 func UpdateJobTotalPending(jobName string, duration time.Duration) {
 	jobTotalPending.WithLabelValues(jobName).Add(DurationInSeconds(duration))
+}
+
+// RegisterJobColdStartCount records number of job cold start
+func RegisterJobColdStartCount(jobName string) {
+	jobColdStartCount.WithLabelValues(jobName).Inc()
+}
+
+// RegisterJobCheckpointCount records number of job checkpoint
+func RegisterJobCheckpointCount(jobName string) {
+	jobCheckpointCount.WithLabelValues(jobName).Inc()
 }
 
 // DurationInMicroseconds gets the time in microseconds.
