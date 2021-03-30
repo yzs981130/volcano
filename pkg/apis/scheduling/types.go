@@ -287,7 +287,7 @@ type QueueSpec struct {
 	Reclaimable *bool
 
 	// QuotaRatio indicates static setting of quota ratio of each VC
-	QuotaRatio float64
+	QuotaRatio string
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

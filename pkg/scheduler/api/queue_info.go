@@ -18,9 +18,9 @@ package api
 
 import (
 	"k8s.io/apimachinery/pkg/types"
-
 	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
 	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling/v1beta1"
+	"strconv"
 )
 
 // QueueID is UID type, serves as unique ID for each queue
@@ -49,6 +49,7 @@ type QueueInfo struct {
 
 // NewQueueInfo creates new queueInfo object
 func NewQueueInfo(queue *scheduling.Queue) *QueueInfo {
+	quota, _ := strconv.ParseFloat(queue.Spec.QuotaRatio, 64)
 	return &QueueInfo{
 		UID:  QueueID(queue.Name),
 		Name: queue.Name,
@@ -56,9 +57,7 @@ func NewQueueInfo(queue *scheduling.Queue) *QueueInfo {
 		Weight:    queue.Spec.Weight,
 		Hierarchy: queue.Annotations[v1beta1.KubeHierarchyAnnotationKey],
 		Weights:   queue.Annotations[v1beta1.KubeHierarchyWeightAnnotationKey],
-
-		QuotaRatio: queue.Spec.QuotaRatio,
-
+		QuotaRatio: quota,
 		Queue: queue,
 	}
 }
