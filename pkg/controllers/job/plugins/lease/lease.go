@@ -58,7 +58,7 @@ func (lp *leasePlugin) OnJobDelete(job *v1alpha1.Job) error {
 	}
 	// if last sub job
 	if job.Spec.TotalLeaseJobCnt == job.Spec.CurrentLeaseJobCnt {
-		metrics.UpdateJobTotalDuration(job.Name, metrics.Duration(job.Spec.JobGroupCreationTimeStamp.Time))
+		metrics.UpdateJobTotalDuration(job.Spec.JobGroupName, metrics.Duration(job.Spec.JobGroupCreationTimeStamp.Time))
 		return nil
 	}
 
