@@ -23,11 +23,15 @@ const PluginName = "lease"
 
 const leaseTerm = 900
 
+func jobKey(job *api.JobInfo) string {
+	return job.PodGroup.Spec.JobGroupName
+}
+
 type leasePlugin struct {
 	// Arguments given for the plugin
 	pluginArguments framework.Arguments
 	// Key is Job ID
-	jobAttrs map[api.JobID]*jobAttr
+	jobAttrs map[string]*jobAttr
 
 	queueOpts         map[api.QueueID]*queueAttr
 	totalFreeResource *api.Resource
@@ -67,7 +71,7 @@ func New(arguments framework.Arguments) framework.Plugin {
 	once.Do(func() {
 		leaseInstance = &leasePlugin{
 			pluginArguments:   arguments,
-			jobAttrs:          map[api.JobID]*jobAttr{},
+			jobAttrs:          map[string]*jobAttr{},
 			queueOpts:         map[api.QueueID]*queueAttr{},
 			totalFreeResource: api.EmptyResource(),
 			totalResource:     api.EmptyResource(),
@@ -114,10 +118,10 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	for _, job := range ssn.Jobs {
 		if !isFinishedJob(job) {
 			// get job utilized and deserved from mc
-			jobStat, err := lp.mc.GetJobStatistics(job.UID)
+			jobStat, err := lp.mc.GetJobStatistics(jobKey(job))
 			if err != nil {
 				// not found in mc, will never happen
-				lp.jobAttrs[job.UID] = &jobAttr{
+				lp.jobAttrs[jobKey(job)] = &jobAttr{
 					utilized: 0,
 					deserved: 0,
 					fairness: 1,
@@ -130,10 +134,10 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 				deserved: jobStat.Deserved,
 			}
 			lp.updateJobFairness(attr)
-			lp.jobAttrs[job.UID] = attr
+			lp.jobAttrs[jobKey(job)] = attr
 		} else {
 			// delete job from active job
-			lp.mc.Delete(job.UID)
+			lp.mc.Delete(job)
 		}
 	}
 
@@ -143,13 +147,13 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		rv := r.(*api.JobInfo)
 
 		klog.V(4).Infof("Lease JobOrderFn: <%v/%v> priority: %f, <%v/%v> priority: %f",
-			lv.Namespace, lv.Name, lp.jobAttrs[lv.UID].fairness, rv.Namespace, rv.Name, lp.jobAttrs[rv.UID].fairness)
+			lv.Namespace, lv.Name, lp.jobAttrs[jobKey(lv)].fairness, rv.Namespace, rv.Name, lp.jobAttrs[jobKey(rv)].fairness)
 
-		if lp.jobAttrs[lv.UID].fairness > lp.jobAttrs[rv.UID].fairness {
+		if lp.jobAttrs[jobKey(lv)].fairness > lp.jobAttrs[jobKey(rv)].fairness {
 			return -1
 		}
 
-		if lp.jobAttrs[lv.UID].fairness < lp.jobAttrs[rv.UID].fairness {
+		if lp.jobAttrs[jobKey(lv)].fairness < lp.jobAttrs[jobKey(rv)].fairness {
 			return 1
 		}
 
@@ -209,7 +213,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		// if true, the job is allocated, update job fairness and queue fairness (like dispatchJob)
 		AllocateJobFunc: func(event *framework.Event) {
 			job := ssn.Jobs[event.Task.Job]
-			jAttr, qAttr := lp.jobAttrs[job.UID], lp.queueOpts[job.Queue]
+			jAttr, qAttr := lp.jobAttrs[jobKey(job)], lp.queueOpts[job.Queue]
 			qAttr.utilized += getJobGPUReq(job) * leaseTerm
 			jAttr.utilized += getJobGPUReq(job) * leaseTerm
 			lp.updateUserFairness(qAttr)
@@ -217,7 +221,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		},
 		DeallocateJobFunc: func(event *framework.Event) {
 			job := ssn.Jobs[event.Task.Job]
-			jAttr, qAttr := lp.jobAttrs[job.UID], lp.queueOpts[job.Queue]
+			jAttr, qAttr := lp.jobAttrs[jobKey(job)], lp.queueOpts[job.Queue]
 			qAttr.utilized -= getJobGPUReq(job) * leaseTerm
 			jAttr.utilized -= getJobGPUReq(job) * leaseTerm
 			lp.updateUserFairness(qAttr)
@@ -348,7 +352,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 
 func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 	// clear jobAttr
-	lp.jobAttrs = map[api.JobID]*jobAttr{}
+	lp.jobAttrs = map[string]*jobAttr{}
 	// clear queueOpts
 	lp.queueOpts = map[api.QueueID]*queueAttr{}
 	lp.totalFreeResource = api.EmptyResource()

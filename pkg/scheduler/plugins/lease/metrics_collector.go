@@ -36,11 +36,11 @@ type userStatistics struct {
 // MetricsCollector defines metrics collector used in lease plugin
 type MetricsCollector struct {
 	period   time.Duration
-	jobPool  map[api.JobID]*jobStatistics
+	jobPool  map[string]*jobStatistics
 	userPool map[api.QueueID]*userStatistics
 
 	// for active jobs
-	userJob map[api.QueueID]map[api.JobID]struct{}
+	userJob map[api.QueueID]map[string]*api.JobInfo
 	lock    sync.Mutex
 
 	clusterTotalGPU float64
@@ -66,9 +66,9 @@ func NewMetricsCollector(_period time.Duration, _ssn *framework.Session, _lp *le
 	return &MetricsCollector{
 		period:   _period,
 		lock:     sync.Mutex{},
-		jobPool:  make(map[api.JobID]*jobStatistics),
+		jobPool:  make(map[string]*jobStatistics),
 		userPool: make(map[api.QueueID]*userStatistics),
-		userJob:  make(map[api.QueueID]map[api.JobID]struct{}),
+		userJob:  make(map[api.QueueID]map[string]*api.JobInfo),
 
 		ssn: _ssn,
 		lp:  _lp,
@@ -80,11 +80,9 @@ func NewMetricsCollector(_period time.Duration, _ssn *framework.Session, _lp *le
 	}
 }
 
-func (mc *MetricsCollector) routineUpdateJobStatistics(jobID api.JobID, stat *jobStatistics, jobNum int, wg *sync.WaitGroup) {
+func (mc *MetricsCollector) routineUpdateJobStatistics(job *api.JobInfo, stat *jobStatistics, jobNum int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	stat.TotalLifeTime += mc.period
-
-	job := mc.ssn.Jobs[jobID]
 
 	// share = weighted * total
 	share := 1.0 / float64(jobNum) * mc.clusterTotalGPU
@@ -112,8 +110,8 @@ func (mc *MetricsCollector) routineUpdateUserStatistics(user api.QueueID, wg *sy
 	quotaRatio := mc.ssn.Queues[user].QuotaRatio
 	weighted = quotaRatio * mc.period.Seconds()
 
-	for jobID := range mc.userJob[user] {
-		job := mc.ssn.Jobs[jobID]
+	for _, job := range mc.userJob[user] {
+		job := mc.ssn.Jobs[job.UID]
 		if job.PodGroup.Status.Phase == scheduling.PodGroupRunning {
 			jobGPUTime := getJobGPUReq(job) * mc.period.Seconds()
 			utilized += jobGPUTime
@@ -166,11 +164,13 @@ func (mc *MetricsCollector) worker() {
 
 	activeJobCnt := mc.getActiveJobCnt()
 
+	// use userJob rather than jobPool
 	wg := sync.WaitGroup{}
-	for job, stat := range mc.jobPool {
-		wg.Add(1)
-		// TODO: use activeJobCnt as pending+running, pay attention to sub-job condition
-		go mc.routineUpdateJobStatistics(job, stat, activeJobCnt, &wg)
+	for user := range mc.userJob {
+		for jobKey, job := range mc.userJob[user] {
+			wg.Add(1)
+			go mc.routineUpdateJobStatistics(job, mc.jobPool[jobKey], activeJobCnt, &wg)
+		}
 	}
 
 	for user := range mc.userPool {
@@ -185,32 +185,32 @@ func (mc *MetricsCollector) addIfNotExist() {
 	for queueID := range mc.ssn.Queues {
 		if _, exist := mc.userPool[queueID]; !exist {
 			mc.userPool[queueID] = initUserStatistics()
-			mc.userJob[queueID] = make(map[api.JobID]struct{})
+			mc.userJob[queueID] = make(map[string]*api.JobInfo)
 		}
 	}
 	// add job into jobPool and userJob
-	for jobID, job := range mc.ssn.Jobs {
-		if _, exist := mc.jobPool[jobID]; !exist && !isFinishedJob(job) {
-			mc.jobPool[jobID] = initJobStatistics()
+	for _, job := range mc.ssn.Jobs {
+		if _, exist := mc.jobPool[jobKey(job)]; !exist && !isFinishedJob(job) {
+			mc.jobPool[jobKey(job)] = initJobStatistics()
 			// userJob should only be inserted when job first met
-			mc.userJob[job.Queue][job.UID] = struct{}{}
+			mc.userJob[job.Queue][jobKey(job)] = job
 		}
 	}
 }
 
 // Delete job from jobPool once finished
-func (mc *MetricsCollector) Delete(job api.JobID) {
+func (mc *MetricsCollector) Delete(job *api.JobInfo) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 	// delete from jobPool
-	if _, exist := mc.jobPool[job]; exist {
-		delete(mc.jobPool, job)
+	if _, exist := mc.jobPool[jobKey(job)]; exist {
+		delete(mc.jobPool, jobKey(job))
 	}
 	// delete from userJob map
-	queue := mc.getJobQueue(job)
+	queue := mc.getJobQueue(job.UID)
 	if _, exist := mc.userJob[queue]; exist {
-		if _, exist := mc.userJob[queue][job]; exist {
-			delete(mc.userJob[queue], job)
+		if _, exist := mc.userJob[queue][jobKey(job)]; exist {
+			delete(mc.userJob[queue], jobKey(job))
 		}
 		if len(mc.userJob[queue]) == 0 {
 			delete(mc.userJob, queue)
@@ -243,7 +243,7 @@ func initUserStatistics() *userStatistics {
 	}
 }
 
-func (mc *MetricsCollector) AddJobLeaseExpiryCnt(job api.JobID) {
+func (mc *MetricsCollector) AddJobLeaseExpiryCnt(job string) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 	if stat, exist := mc.jobPool[job]; exist {
@@ -251,7 +251,7 @@ func (mc *MetricsCollector) AddJobLeaseExpiryCnt(job api.JobID) {
 	}
 }
 
-func (mc *MetricsCollector) AddJobCheckpointCnt(job api.JobID) {
+func (mc *MetricsCollector) AddJobCheckpointCnt(job string) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 	if stat, exist := mc.jobPool[job]; exist {
@@ -259,7 +259,7 @@ func (mc *MetricsCollector) AddJobCheckpointCnt(job api.JobID) {
 	}
 }
 
-func (mc *MetricsCollector) AddJobColdstartCnt(job api.JobID) {
+func (mc *MetricsCollector) AddJobColdstartCnt(job string) {
 	mc.lock.Lock()
 	defer mc.lock.Unlock()
 	if stat, exist := mc.jobPool[job]; exist {
@@ -271,7 +271,7 @@ func (mc *MetricsCollector) SetClusterSize(_clusterTotalGPU float64) {
 	mc.clusterTotalGPU = _clusterTotalGPU
 }
 
-func (mc *MetricsCollector) GetJobStatistics(job api.JobID) (*jobStatistics, error) {
+func (mc *MetricsCollector) GetJobStatistics(job string) (*jobStatistics, error) {
 	if _, exist := mc.jobPool[job]; exist {
 		return mc.jobPool[job], nil
 	}
