@@ -3,25 +3,26 @@ module pkg.yezhisheng.me/volcano
 go 1.14
 
 require (
-	github.com/fsnotify/fsnotify v1.4.7
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/hashicorp/go-multierror v1.0.0
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.7.0
+	github.com/onsi/ginkgo v1.14.1
+	github.com/onsi/gomega v1.10.2
 	github.com/prometheus/client_golang v1.0.0
-	github.com/spf13/cobra v0.0.5
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/api v0.18.3
-	k8s.io/apimachinery v0.18.3
+	gopkg.in/yaml.v2 v2.3.0
+	k8s.io/api v0.20.2
+	k8s.io/apimachinery v0.20.2
 	k8s.io/apiserver v0.18.3
 	k8s.io/client-go v0.18.3
 	k8s.io/component-base v0.18.3
 	k8s.io/klog v1.0.0
 	k8s.io/kube-scheduler v0.0.0
 	k8s.io/kubernetes v1.18.3
+	sigs.k8s.io/controller-tools v0.5.0 // indirect
 	sigs.k8s.io/yaml v1.2.0
 )
 
