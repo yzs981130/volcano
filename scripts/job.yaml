@@ -1,0 +1,29 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: test-job-1
+spec:
+  minAvailable: 2
+  schedulerName: volcano
+  plugins:
+    lease: []
+  queue: default
+  total_lease_cnt: 5
+  current_lease_job_cnt: 1
+  tasks:
+    - replicas: 2
+      name: "default-nginx"
+      template:
+        metadata:
+          name: web
+        spec:
+          containers:
+            - image: alpine
+              imagePullPolicy: IfNotPresent
+              name: alpine-sleep
+              command: [ "/bin/sh" ]
+              args: [ "-c", "sleep 180" ]
+              resources:
+                requests:
+                  cpu: "1"
+          restartPolicy: OnFailure
