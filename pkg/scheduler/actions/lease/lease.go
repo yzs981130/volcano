@@ -223,6 +223,7 @@ func jobList2UserJobPQ(jobs []*api.JobInfo, lessFn api.LessFn, filterFns []func(
 }
 
 func (la *Action) scheduling(ssn *framework.Session, userJobPQ map[api.QueueID]*util.PriorityQueue, candidateNodes []*api.NodeInfo, predicatedFn api.PredicateFn, filterFns ...func(interface{}) bool) (allocatedJobList []*api.JobInfo) {
+	var stmts []*framework.Statement
 	// for every user, allocate user pending job in order, under the restriction of user quota
 	for queueID := range userJobPQ {
 		pendingJobs := userJobPQ[queueID]
@@ -238,10 +239,13 @@ func (la *Action) scheduling(ssn *framework.Session, userJobPQ map[api.QueueID]*
 			// try to allocate the job
 			// allocateJob will affect job status and resource status
 			canAllocate := false
-			if canAllocate = allocateJob(ssn, job, candidateNodes, predicatedFn); canAllocate {
-				allocatedJobList = append(allocatedJobList, job)
+			stmt := framework.NewStatement(ssn)
+			if canAllocate, stmt = allocateJob(ssn, job, candidateNodes, predicatedFn); canAllocate {
+				// use job.Clone to save job and task scheduling result, and unaware of stmt.Discard
+				allocatedJobList = append(allocatedJobList, job.Clone())
 				// update queue quota usage (in allocateJobFn)
 				ssn.AllocateJob(job)
+				stmts = append(stmts, stmt)
 			}
 			// if enable block scheduling, skip to next user once allocation failed
 			if !canAllocate && la.isBlock {
@@ -249,12 +253,17 @@ func (la *Action) scheduling(ssn *framework.Session, userJobPQ map[api.QueueID]*
 			}
 		}
 	}
+	//
+	for _, stmt := range stmts {
+		stmt.Discard()
+	}
 	return
 }
 
-func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo, predicateFn api.PredicateFn) bool {
+func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo, predicateFn api.PredicateFn) (bool, *framework.Statement ){
 	// statement only handles single job resource allocate
 	// resource will be restored only when job is not allocated due to gang
+	klog.V(3).Infof("job %s has %d tasks in allocateJob", job.Name, len(job.Tasks))
 	stmt := framework.NewStatement(ssn)
 	tasks := util.NewPriorityQueue(ssn.TaskOrderFn)
 	for _, task := range job.Tasks {
@@ -312,12 +321,12 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 	}
 	// check if job is allocated (gang)
 	if job.IsAllocated() {
-		return true
+		return true, stmt
 	} else {
 		// discard allocated task impact on resource
 		stmt.Discard()
 	}
-	return false
+	return false, nil
 }
 
 func reclaimJobResource(ssn *framework.Session, job *api.JobInfo) {
