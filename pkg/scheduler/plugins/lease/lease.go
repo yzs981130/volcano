@@ -69,8 +69,8 @@ type jobAttr struct {
 	remainingTime          int
 	ddlTime                int
 	submitTime             int
-	reqGPU       int
-	duration     int
+	reqGPU                 int
+	duration               int
 }
 
 // New return priority plugin
@@ -83,22 +83,20 @@ func New(arguments framework.Arguments) framework.Plugin {
 	}
 }
 
+// func (lp *leasePlugin) SummaryCluster(ssn *framework.Session) {
+// 	all_running_resour := 0, 0
+// 	all_pending_resource, all_pending_number := 0, 0
 
-func (lp *leasePlugin) SummaryCluster(ssn *framework.Session) {
-	all_running_resource, all_running_numer := 0, 0
-	all_pending_resource, all_pending_number := 0, 0
-	
-	for _, job := range ssn.Jobs {
-		if !isFinished(job) {
-			if isRunning(job) {
-				all_running_resource += int(getJobGPUReq(job))
-			} else {
-				all_pending_resoure += int(getJobGPUReq(job))
-			}
-		}
-	}
-}
-
+// 	for _, job := range ssn.Jobs {
+// 		if !isFinishedJob(job) {
+// 			if isRunningJob(job) {
+// 				all_running_resource += int(getJobGPUReq(job))
+// 			} else {
+// 				all_pending_resource += int(getJobGPUReq(job))
+// 			}
+// 		}
+// 	}
+// }
 
 func (lp *leasePlugin) Name() string {
 	return PluginName
@@ -117,7 +115,7 @@ func max(arr []int) int {
 func (lp *leasePlugin) ProcessUnacceptedJobs(job *api.JobInfo, requireResourceList, requireLeaseList, maximumLeaseList, globalCacheSolution []int) bool {
 	jAttr := lp.jobAttrs[job.UID]
 	maxLen := len(requireLeaseList)
-	infeasibleLease := requireLeaseList[maxLen-1]
+	infeasible_lease := requireLeaseList[maxLen-1]
 
 	if requireLeaseList[maxLen-1] > maximumLeaseList[maxLen-1] {
 		maximumLeaseList[maxLen-1] = requireLeaseList[maxLen-1]
@@ -157,8 +155,8 @@ func (lp *leasePlugin) ProcessUnacceptedJobs(job *api.JobInfo, requireResourceLi
 		jAttr.requireMipOptimization = 0
 		// TODO
 	} else {
-		if maximumLeaseList[-1] < infeasible_lease * TolerateRatio {
-			jAttr.ddlTime = leaseTerm * (maximum_lease_list[-1] + curLeaseIndex) - jAttr.submitTime
+		if maximumLeaseList[maxLen-1] < infeasible_lease*TolerateRatio {
+			jAttr.ddlTime = leaseTerm*(maximumLeaseList[maxLen-1]+curLeaseIndex) - jAttr.submitTime
 			return true
 		}
 		jAttr.sloPrioirity = unacceptedSLO
@@ -179,7 +177,6 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	lp.FlushRunningJobs(ssn)
 	lp.FlushEventJobs(ssn)
 	lp.FlushPendingJobs(ssn)
-
 
 	// use lp.jobAttrs[lv.UID].fairness for job selection
 	jobOrderFn := func(l, r interface{}) int {
@@ -346,25 +343,27 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 func (lp *leasePlugin) OnSessionClose(ssn *framework.Session) {
 	for _, job := range ssn.Jobs {
 		if isFinishedJob(job) {
-			_, found := lp.queueOpts[queue.UID]
-			if found {
-				delete(lp.jobAttrs, job.UID)
-			}
+			// _, found := lp.queueOpts[job.Queue]
+			// if found {
+			// 	delete(lp.jobAttrs, job.UID)
+			// }
+			delete(lp.jobAttrs, job.UID)
 		}
 	}
 }
 
 func isRunningJob(job *api.JobInfo) bool {
-	for _, status := range job.TaskStatusIndex {
-		if status != api.RUNNING {
+	for status, _ := range job.TaskStatusIndex {
+		if status != api.Allocated {
 			return false
+		}
 	}
 	return false
 }
 
 // check if job need scheduling
 func isPendingJob(job *api.JobInfo) bool {
-	for _, status := range job.TaskStatusIndex {
+	for status, _ := range job.TaskStatusIndex {
 		if status != api.Pending {
 			return false
 		}
@@ -400,4 +399,3 @@ func computeEmergence(remainingTime int, reqResource int) int {
 func computeMaximumLease(expectMaximumEndTime int, leaseTerm int, curLeaseIndex int) int {
 	return int(math.Floor(float64(expectMaximumEndTime)/float64(leaseTerm))) - curLeaseIndex
 }
-
