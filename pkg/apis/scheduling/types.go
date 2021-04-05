@@ -181,6 +181,26 @@ type PodGroupSpec struct {
 	// if there's not enough resources to start all tasks, the scheduler
 	// will not start anyone.
 	MinResources *v1.ResourceList
+
+	// copy from lease related job.Spec
+	// total sub lease job it can be divided into
+	// +optional
+	TotalLeaseJobCnt int32
+
+	// +optional
+	CurrentLeaseJobCnt int32
+
+	// +optional
+	JobGroupCreationTimeStamp *metav1.Time
+
+	// +optional
+	CurrentJobScheduledTimeStamp *metav1.Time
+
+	// +optional
+	FormerJobDeletionTimeStamp *metav1.Time
+
+	// +optional
+	JobGroupName string
 }
 
 // PodGroupStatus represents the current state of a pod group.
@@ -265,6 +285,9 @@ type QueueSpec struct {
 	State QueueState
 	// Reclaimable indicate whether the queue can be reclaimed by other queue
 	Reclaimable *bool
+
+	// QuotaRatio indicates static setting of quota ratio of each VC
+	QuotaRatio string
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
