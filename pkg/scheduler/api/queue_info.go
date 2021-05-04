@@ -71,6 +71,7 @@ func (q *QueueInfo) Clone() *QueueInfo {
 		Hierarchy: q.Hierarchy,
 		Weights:   q.Weights,
 		Queue:     q.Queue,
+		QuotaRatio: q.QuotaRatio,
 	}
 }
 
