@@ -18,6 +18,7 @@ package framework
 
 import (
 	"fmt"
+	vcclient "volcano.sh/apis/pkg/client/clientset/versioned"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,6 +40,7 @@ type Session struct {
 	UID types.UID
 
 	kubeClient kubernetes.Interface
+	vcClient   *vcclient.Clientset
 	cache      cache.Cache
 	// podGroupStatus cache podgroup status during schedule
 	// This should not be mutated after initiated
@@ -82,6 +84,7 @@ func openSession(cache cache.Cache) *Session {
 	ssn := &Session{
 		UID:        uuid.NewUUID(),
 		kubeClient: cache.Client(),
+		vcClient:   cache.VcClient(),
 		cache:      cache,
 
 		podGroupStatus: map[api.JobID]scheduling.PodGroupStatus{},
@@ -426,6 +429,11 @@ func (ssn *Session) AddEventHandler(eh *EventHandler) {
 // KubeClient returns the kubernetes client
 func (ssn Session) KubeClient() kubernetes.Interface {
 	return ssn.kubeClient
+}
+
+// VcClient returns the volcano client
+func (ssn Session) VcClient() *vcclient.Clientset {
+	return ssn.vcClient
 }
 
 //String return nodes and jobs information in the session

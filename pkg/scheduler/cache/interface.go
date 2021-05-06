@@ -21,6 +21,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/controller/volume/scheduling"
 
+	vcclient "volcano.sh/apis/pkg/client/clientset/versioned"
 	"volcano.sh/volcano/pkg/scheduler/api"
 )
 
@@ -60,6 +61,9 @@ type Cache interface {
 
 	// Client returns the kubernetes clientSet, which can be used by plugins
 	Client() kubernetes.Interface
+
+	// VcClient returns the volcano clientSet, which can be used by plugins
+	VcClient() *vcclient.Clientset
 }
 
 // VolumeBinder interface for allocate and bind volumes
