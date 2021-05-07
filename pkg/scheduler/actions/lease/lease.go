@@ -1,6 +1,8 @@
 package lease
 
 import (
+	"context"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 	"pkg.yezhisheng.me/volcano/pkg/apis/scheduling"
 	"pkg.yezhisheng.me/volcano/pkg/scheduler/api"
@@ -354,11 +356,39 @@ func reclaimJobResource(ssn *framework.Session, job *api.JobInfo) {
 }
 
 func renewalSucceedJob(ssn *framework.Session, job *api.JobInfo) {
-
+	// get vc job
+	vcJob, err := ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Get(context.TODO(), job.Name, metav1.GetOptions{})
+	if err != nil {
+		klog.V(3).Infof("renewalSucceedJob: get job err %v", err)
+	}
+	// annotate vcJob
+	if vcJob.Annotations == nil {
+		vcJob.Annotations = make(map[string]string)
+	}
+	vcJob.Annotations[PodGroupRenewingResultAnnoKey] = PodGroupRenewingSucceeded
+	// update vcJob
+	_, err = ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Update(context.TODO(), vcJob, metav1.UpdateOptions{})
+	if err != nil {
+		klog.V(3).Infof("renewalSucceedJob: update job err %v", err)
+	}
 }
 
 func renewalFailedJob(ssn *framework.Session, job *api.JobInfo) {
-
+	// get vc job
+	vcJob, err := ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Get(context.TODO(), job.Name, metav1.GetOptions{})
+	if err != nil {
+		klog.V(3).Infof("renewalFailedJob: get job err %v", err)
+	}
+	// annotate vcJob
+	if vcJob.Annotations == nil {
+		vcJob.Annotations = make(map[string]string)
+	}
+	vcJob.Annotations[PodGroupRenewingResultAnnoKey] = PodGroupRenewingFailed
+	// update vcJob
+	_, err = ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Update(context.TODO(), vcJob, metav1.UpdateOptions{})
+	if err != nil {
+		klog.V(3).Infof("renewalFailedJob: update job err %v", err)
+	}
 }
 
 func (la *Action) getIsBlock(ssn *framework.Session) {
