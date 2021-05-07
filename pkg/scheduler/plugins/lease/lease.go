@@ -26,6 +26,7 @@ type leasePlugin struct {
 
 	queueOpts     map[api.QueueID]*queueAttr
 	totalResource *api.Resource
+	idleResource *api.Resource
 }
 
 type queueAttr struct {
@@ -71,9 +72,13 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		if !isFinishedJob(job) {
 			if _, found := lp.jobAttrs[job.UID]; !found {
 				// TODO: get job utilized & deserved from job.PodGroup
+				if job.PodGroup.Annotations == nil {
+					klog.Errorf("job %s has no annotation in its podgroup, skipping", job.Name)
+					continue
+				}
 				attr := &jobAttr{
-					utilized: 0,
-					deserved: 0,
+					utilized: string2float(job.PodGroup.Annotations[PodGroupStatisticsAnnoKey.Utilized]),
+					deserved: string2float(job.PodGroup.Annotations[PodGroupStatisticsAnnoKey.Deserved]),
 				}
 				lp.updateJobFairness(attr)
 				lp.jobAttrs[job.UID] = attr
@@ -191,14 +196,25 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 
 	for _, n := range ssn.Nodes {
 		lp.totalResource.Add(n.Allocatable)
+		lp.idleResource.Add(n.Idle)
 	}
 
 	klog.V(4).Infof("The total resource is <%v>", lp.totalResource)
+	klog.V(4).Infof("The idle resource is <%v>", lp.idleResource)
+
+	totalGPUcnt := lp.totalResource.ScalarResources[api.GPUResourceName]
+	if totalGPUcnt == 0 {
+		klog.V(2).Infof("Total GPU is 0, may cause panic later")
+	}
 
 	// build up queues
 	for _, queue := range ssn.Queues {
 		// if not cached
 		if _, found := lp.queueOpts[queue.UID]; !found {
+			if queue.Queue.Annotations == nil {
+				klog.Errorf("user %s has no annotation in its queue, skipping", queue.Name)
+				continue
+			}
 			attr := &queueAttr{
 				queueID:    queue.UID,
 				name:       queue.Name,
@@ -206,14 +222,17 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 				// for overused
 				allocated: api.EmptyResource(),
 				// TODO: store & calculate user fairness related historical information
-
+				utilized: string2float(queue.Queue.Annotations[UserStatisticsAnnoKey.Utilized]),
+				weighted: string2float(queue.Queue.Annotations[UserStatisticsAnnoKey.Weighted]),
+				// TODO: calculate userquota by quotaRatio or get from spec directly, use quotaRatio for now
+				userQuota: lp.totalResource.ScalarResources[api.GPUResourceName] * queue.QuotaRatio,
 			}
 			lp.queueOpts[queue.UID] = attr
 		}
 	}
 
 	// build up scheduling information:
-	totalFreeGPU := lp.totalResource.ScalarResources[api.GPUResourceName]
+	totalFreeGPU := lp.idleResource.ScalarResources[api.GPUResourceName]
 	// all pending job map
 	pendingJobs := map[api.JobID]struct{}{}
 	// user->pending_job
