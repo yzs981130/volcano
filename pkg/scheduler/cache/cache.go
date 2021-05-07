@@ -583,6 +583,10 @@ func (sc *SchedulerCache) Client() kubernetes.Interface {
 	return sc.kubeClient
 }
 
+func (sc *SchedulerCache) VcClient() *vcclient.Clientset {
+	return sc.vcClient
+}
+
 // taskUnschedulable updates pod status of pending task
 func (sc *SchedulerCache) taskUnschedulable(task *schedulingapi.TaskInfo, message string) error {
 	pod := task.Pod
