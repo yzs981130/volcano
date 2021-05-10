@@ -158,7 +158,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		// In other words, check if the job is allocated
 		// if true, the job is allocated, update job fairness and queue fairness (like dispatchJob)
 		AllocateJobFunc: func(event *framework.Event) {
-			job := ssn.Jobs[event.Task.Job]
+			job := event.Job
 			jAttr, qAttr := lp.jobAttrs[job.UID], lp.queueOpts[job.Queue]
 			qAttr.utilized += getJobGPUReq(job) * leaseTerm
 			jAttr.utilized += getJobGPUReq(job) * leaseTerm
@@ -166,7 +166,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			lp.updateJobFairness(jAttr)
 		},
 		DeallocateJobFunc: func(event *framework.Event) {
-			job := ssn.Jobs[event.Task.Job]
+			job := event.Job
 			jAttr, qAttr := lp.jobAttrs[job.UID], lp.queueOpts[job.Queue]
 			qAttr.utilized -= getJobGPUReq(job) * leaseTerm
 			jAttr.utilized -= getJobGPUReq(job) * leaseTerm
