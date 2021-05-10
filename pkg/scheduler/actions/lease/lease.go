@@ -196,8 +196,8 @@ func (la *Action) Execute(ssn *framework.Session) {
 
 		stmt.Commit()
 
-		// Added Namespace back until no job in Namespace.
-		namespaces.Push(namespace)
+		// don't support multi namespace, skip
+		// namespaces.Push(namespace)
 	}
 }
 
