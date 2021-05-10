@@ -205,6 +205,17 @@ func (la *Action) UnInitialize() {}
 
 // return if job is renewing in this scheduling round
 func isJobRenewing(job *api.JobInfo) bool {
+	if job.PodGroup.Annotations == nil {
+		return false
+	}
+	// if found result, return false
+	if _, exist := job.PodGroup.Annotations[PodGroupRenewingResultAnnoKey]; exist {
+		return false
+	}
+	// if have renewing annotation, return true
+	if result, exist := job.PodGroup.Annotations[PodGroupRenewingAnnoKey]; exist && result == PodGroupRenewingOngoing {
+		return true
+	}
 	return false
 }
 

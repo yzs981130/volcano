@@ -4,6 +4,9 @@ const (
 	// The key of renewing annotation in the PodGroup.
 	PodGroupRenewingAnnoKey = "scheduling.yzs981130.io/renewing"
 
+	PodGroupRenewingOngoing = "true"
+	PodGroupRenewingNotOngoing = "false"
+
 	// The key of renewing result annotation in the PodGroup.
 	PodGroupRenewingResultAnnoKey = "scheduling.yzs981130.io/renewing-result"
 
