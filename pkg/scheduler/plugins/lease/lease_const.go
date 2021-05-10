@@ -6,19 +6,20 @@ import (
 )
 
 const (
-	podGroupStatisticsGroupAnnoKey = "scheduling.yzs981130.io/jobstatistics/"
-	userStatisticsGroupAnnoKey = "scheduling.yzs981130.io/userstatistics/"
+	podGroupStatisticsGroupAnnoKey = "scheduling.yzs981130.io/jobstatistics-"
+	userStatisticsGroupAnnoKey     = "scheduling.yzs981130.io/userstatistics-"
 )
 
+// PodGroupStatisticsAnnoKey represents every entry of job statistics
 var PodGroupStatisticsAnnoKey = struct {
-	TotalExecutedTime string
-	TotalLifeTime string
-	LeaseExpiryCnt	string
+	TotalExecutedTime       string
+	TotalLifeTime           string
+	LeaseExpiryCnt          string
 	ExecutedTimeInLastLease string
-	CheckpointCnt	string
-	ColdstartCnt	string
-	Utilized		string
-	Deserved		string
+	CheckpointCnt           string
+	ColdstartCnt            string
+	Utilized                string
+	Deserved                string
 }{
 	podGroupStatisticsGroupAnnoKey + "TotalExecutedTime",
 	podGroupStatisticsGroupAnnoKey + "TotalLifeTime",
@@ -30,11 +31,12 @@ var PodGroupStatisticsAnnoKey = struct {
 	podGroupStatisticsGroupAnnoKey + "Deserved",
 }
 
+// UserStatisticsAnnoKey represents every entry of user statistics
 var UserStatisticsAnnoKey = struct {
-	Utilized	string
-	Deserved	string
-	Weighted 	string
-	UdivideW	string
+	Utilized string
+	Deserved string
+	Weighted string
+	UdivideW string
 }{
 	userStatisticsGroupAnnoKey + "Utilized",
 	userStatisticsGroupAnnoKey + "Deserved",

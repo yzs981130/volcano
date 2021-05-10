@@ -26,7 +26,7 @@ type leasePlugin struct {
 
 	queueOpts     map[api.QueueID]*queueAttr
 	totalResource *api.Resource
-	idleResource *api.Resource
+	idleResource  *api.Resource
 }
 
 type queueAttr struct {

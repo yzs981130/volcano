@@ -583,6 +583,7 @@ func (sc *SchedulerCache) Client() kubernetes.Interface {
 	return sc.kubeClient
 }
 
+// VcClient returns the volcano clientset
 func (sc *SchedulerCache) VcClient() *vcclient.Clientset {
 	return sc.vcClient
 }
