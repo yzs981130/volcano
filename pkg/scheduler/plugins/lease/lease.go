@@ -58,6 +58,7 @@ func New(arguments framework.Arguments) framework.Plugin {
 		jobAttrs:        map[api.JobID]*jobAttr{},
 		queueOpts:       map[api.QueueID]*queueAttr{},
 		totalResource:   api.EmptyResource(),
+		idleResource:    api.EmptyResource(),
 	}
 }
 
