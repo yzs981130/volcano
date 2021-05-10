@@ -272,7 +272,7 @@ type QueueSpec struct {
 	// Reclaimable indicate whether the queue can be reclaimed by other queue
 	Reclaimable *bool `json:"reclaimable,omitempty" protobuf:"bytes,3,opt,name=reclaimable"`
 	// QuotaRatio indicates static setting of quota ratio of each VC
-	QuotaRatio string `json:"quota_ratio,omitempty"`
+	QuotaRatio float64 `json:"quota_ratio,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

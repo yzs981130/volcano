@@ -276,7 +276,7 @@ func newSchedulerCache(config *rest.Config, schedulerName string, defaultQueue s
 		Spec: vcv1beta1.QueueSpec{
 			Reclaimable: &reclaimable,
 			Weight:      1,
-			QuotaRatio:  "1.0",
+			QuotaRatio:  1.0,
 		},
 	}
 	if _, err := vcClient.SchedulingV1beta1().Queues().Create(context.TODO(), &defaultQue, metav1.CreateOptions{}); err != nil && !apierrors.IsAlreadyExists(err) {
