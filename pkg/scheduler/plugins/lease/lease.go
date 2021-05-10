@@ -243,6 +243,9 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 		// add all pending job
 		if isPendingJob(job) {
 			pendingJobs[job.UID] = struct{}{}
+			if _, exist := userJobMap[job.Queue]; !exist {
+				userJobMap[job.Queue] = schedulerutil.NewPriorityQueue(ssn.JobOrderFn)
+			}
 			userJobMap[job.Queue].Push(job)
 		}
 
