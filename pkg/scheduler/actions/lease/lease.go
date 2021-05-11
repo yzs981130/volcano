@@ -331,6 +331,7 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 			klog.V(3).Infof("Binding Task <%v/%v> to node <%v>",
 				task.Namespace, task.Name, node.Name)
 			if err := stmt.Allocate(task, node.Name); err != nil {
+				allocatedFailedTaskCnt++
 				klog.Errorf("Failed to bind Task %v on %v in Session %v, err: %v",
 					task.UID, node.Name, ssn.UID, err)
 			}
@@ -338,6 +339,7 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 			klog.V(3).Infof("Pipelining Task <%v/%v> to node <%v> for <%v> on <%v>",
 				task.Namespace, task.Name, node.Name, task.InitResreq, node.Releasing)
 			if err := stmt.Pipeline(task, node.Name); err != nil {
+				allocatedFailedTaskCnt++
 				klog.Errorf("Failed to pipeline Task %v on %v in Session %v for %v.",
 					task.UID, node.Name, ssn.UID, err)
 			}
