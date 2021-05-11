@@ -383,38 +383,38 @@ func reclaimJobResource(ssn *framework.Session, job *api.JobInfo) {
 }
 
 func renewalSucceedJob(ssn *framework.Session, job *api.JobInfo) {
-	// get vc job
-	vcJob, err := ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Get(context.TODO(), job.Name, metav1.GetOptions{})
+	// get vc podgroup (name = job.Name)
+	podgroup, err := ssn.VcClient().SchedulingV1beta1().PodGroups(job.Namespace).Get(context.TODO(), job.Name, metav1.GetOptions{})
 	if err != nil {
-		klog.V(3).Infof("renewalSucceedJob: get job err %v", err)
+		klog.V(3).Infof("renewalSucceedJob: get podgroup err %v", err)
 	}
-	// annotate vcJob
-	if vcJob.Annotations == nil {
-		vcJob.Annotations = make(map[string]string)
+	// annotate podgroup
+	if podgroup.Annotations == nil {
+		podgroup.Annotations = make(map[string]string)
 	}
-	vcJob.Annotations[PodGroupRenewingResultAnnoKey] = PodGroupRenewingSucceeded
-	// update vcJob
-	_, err = ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Update(context.TODO(), vcJob, metav1.UpdateOptions{})
+	podgroup.Annotations[PodGroupRenewingResultAnnoKey] = PodGroupRenewingSucceeded
+	// update podgroup
+	_, err = ssn.VcClient().SchedulingV1beta1().PodGroups(job.Namespace).Update(context.TODO(), podgroup, metav1.UpdateOptions{})
 	if err != nil {
-		klog.V(3).Infof("renewalSucceedJob: update job err %v", err)
+		klog.V(3).Infof("renewalSucceedJob: update podgroup err %v", err)
 	}
 }
 
 func renewalFailedJob(ssn *framework.Session, job *api.JobInfo) {
-	// get vc job
-	vcJob, err := ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Get(context.TODO(), job.Name, metav1.GetOptions{})
+	// get vc podgroup (name = job.Name)
+	podgroup, err := ssn.VcClient().SchedulingV1beta1().PodGroups(job.Namespace).Get(context.TODO(), job.Name, metav1.GetOptions{})
 	if err != nil {
-		klog.V(3).Infof("renewalFailedJob: get job err %v", err)
+		klog.V(3).Infof("renewalFailedJob: get podgroup err %v", err)
 	}
-	// annotate vcJob
-	if vcJob.Annotations == nil {
-		vcJob.Annotations = make(map[string]string)
+	// annotate podgroup
+	if podgroup.Annotations == nil {
+		podgroup.Annotations = make(map[string]string)
 	}
-	vcJob.Annotations[PodGroupRenewingResultAnnoKey] = PodGroupRenewingFailed
-	// update vcJob
-	_, err = ssn.VcClient().BatchV1alpha1().Jobs(job.Namespace).Update(context.TODO(), vcJob, metav1.UpdateOptions{})
+	podgroup.Annotations[PodGroupRenewingResultAnnoKey] = PodGroupRenewingFailed
+	// update podgroup
+	_, err = ssn.VcClient().SchedulingV1beta1().PodGroups(job.Namespace).Update(context.TODO(), podgroup, metav1.UpdateOptions{})
 	if err != nil {
-		klog.V(3).Infof("renewalFailedJob: update job err %v", err)
+		klog.V(3).Infof("renewalFailedJob: update podgroup err %v", err)
 	}
 }
 
