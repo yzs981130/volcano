@@ -240,8 +240,8 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 	userJobMap := map[api.QueueID]*schedulerutil.PriorityQueue{}
 
 	for _, job := range ssn.Jobs {
-		// add all pending job
-		if isPendingJob(job) {
+		// add all pending + renewing job, to determine user new quota
+		if isPendingJob(job) || isJobRenewing(job) {
 			pendingJobs[job.UID] = struct{}{}
 			if _, exist := userJobMap[job.Queue]; !exist {
 				userJobMap[job.Queue] = schedulerutil.NewPriorityQueue(ssn.JobOrderFn)
@@ -290,6 +290,7 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			lp.queueOpts[user].utilized += jobGPUReq * leaseTerm
 			lp.queueOpts[user].uDivideW = lp.queueOpts[user].utilized / lp.queueOpts[user].weighted
 			lp.queueOpts[user].utilizedQuotaPercent = lp.queueOpts[user].newQuota / lp.queueOpts[user].userQuota
+			delete(pendingJobs, job.UID)
 			break
 		}
 		// del user if no pending job
@@ -335,6 +336,33 @@ func isPendingJob(job *api.JobInfo) bool {
 		}
 	}
 	return true
+}
+
+const (
+	// The key of renewing annotation in the PodGroup.
+	PodGroupRenewingAnnoKey = "scheduling.yzs981130.io/renewing"
+
+	PodGroupRenewingOngoing = "true"
+	PodGroupRenewingNotOngoing = "false"
+
+	// The key of renewing result annotation in the PodGroup.
+	PodGroupRenewingResultAnnoKey = "scheduling.yzs981130.io/renewing-result"
+)
+
+// return if job is renewing in this scheduling round
+func isJobRenewing(job *api.JobInfo) bool {
+	if job.PodGroup.Annotations == nil {
+		return false
+	}
+	// if found result, return false
+	if _, exist := job.PodGroup.Annotations[PodGroupRenewingResultAnnoKey]; exist {
+		return false
+	}
+	// if have renewing annotation, return true
+	if result, exist := job.PodGroup.Annotations[PodGroupRenewingAnnoKey]; exist && result == PodGroupRenewingOngoing {
+		return true
+	}
+	return false
 }
 
 // to skip finished job in ssn.Jobs
