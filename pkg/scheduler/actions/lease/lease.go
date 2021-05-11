@@ -57,7 +57,7 @@ func (la *Action) Execute(ssn *framework.Session) {
 	jobsMap := map[api.NamespaceName]map[api.QueueID]*util.PriorityQueue{}
 
 	var renewingJobList []*api.JobInfo
-	renewingJobMap := make(map[*api.JobInfo]struct{})
+	renewingJobMap := make(map[api.JobID]struct{})
 
 	for _, job := range ssn.Jobs {
 		if job.PodGroup.Status.Phase == scheduling.PodGroupPending {
@@ -96,7 +96,7 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// use clone to avoid affecting latter status
 		if isJobRenewing(job) {
 			renewingJobList = append(renewingJobList, job.Clone())
-			renewingJobMap[job] = struct{}{}
+			renewingJobMap[job.UID] = struct{}{}
 		}
 	}
 
@@ -174,13 +174,13 @@ func (la *Action) Execute(ssn *framework.Session) {
 		stmt := framework.NewStatement(ssn)
 		// for all lease renewing job, if in allocatedJobList, return true
 		for _, job := range allocatedJobList {
-			if _, exist := renewingJobMap[job]; exist {
+			if _, exist := renewingJobMap[job.UID]; exist {
 				renewalSucceedJob(ssn, job)
-				delete(renewingJobMap, job)
+				delete(renewingJobMap, job.UID)
 			}
 		}
-		for job := range renewingJobMap {
-			renewalFailedJob(ssn, job)
+		for jobID := range renewingJobMap {
+			renewalFailedJob(ssn, ssn.Jobs[jobID])
 		}
 		// for all job in allocatedJobList2, allocate job task
 		for _, job := range allocatedJobList2 {
