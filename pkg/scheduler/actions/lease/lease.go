@@ -294,12 +294,15 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 		tasks.Push(task.Clone())
 	}
 
+	allocatedFailedTaskCnt := 0
+
 	for !tasks.Empty() {
 		task := tasks.Pop().(*api.TaskInfo)
 
 		predicateNodes, fitErrors := util.PredicateNodes(task, nodes, predicateFn)
 		if len(predicateNodes) == 0 {
 			job.NodesFitErrors[task.UID] = fitErrors
+			allocatedFailedTaskCnt++
 			break
 		}
 
@@ -312,6 +315,7 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 
 		// If not candidate nodes for this task, skip it.
 		if len(candidateNodes) == 0 {
+			allocatedFailedTaskCnt++
 			break
 		}
 
@@ -339,11 +343,12 @@ func allocateJob(ssn *framework.Session, job *api.JobInfo, nodes []*api.NodeInfo
 			}
 		} else {
 			// no enough resource, job allocation failed because of gang scheduling
+			allocatedFailedTaskCnt++
 			break
 		}
 	}
-	// check if job is allocated (gang)
-	if job.IsAllocated() {
+	// check if all tasks are allocated (gang)
+	if allocatedFailedTaskCnt == 0 {
 		return true
 	} else {
 		// discard allocated task impact on resource
