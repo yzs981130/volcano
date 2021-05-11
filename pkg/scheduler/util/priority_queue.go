@@ -110,3 +110,13 @@ func (q *PriorityQueue) Filter(filterFn ...func(interface{}) bool) *PriorityQueu
 	}
 	return r
 }
+
+// Clone implements a deep copy for priority queue
+func (q *PriorityQueue) Clone() *PriorityQueue {
+	return &PriorityQueue{
+		queue: priorityQueue{
+			items:  append(make([]interface{}, 0, len(q.queue.items)), q.queue.items...),
+			lessFn: q.queue.lessFn,
+		},
+	}
+}

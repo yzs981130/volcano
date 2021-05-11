@@ -258,8 +258,7 @@ func jobList2UserJobPQ(jobs []*api.JobInfo, lessFn api.LessFn, filterFns []func(
 func (la *Action) scheduling(ssn *framework.Session, userJobPQ map[api.QueueID]*util.PriorityQueue, candidateNodes []*api.NodeInfo, predicatedFn api.PredicateFn, filterFns ...func(interface{}) bool) (allocatedJobList []*api.JobInfo) {
 	// for every user, allocate user pending job in order, under the restriction of user quota
 	for queueID := range userJobPQ {
-		pendingJobs := userJobPQ[queueID]
-		pendingJobs.Filter(filterFns...)
+		pendingJobs := userJobPQ[queueID].Filter(filterFns...)
 		for !pendingJobs.Empty() {
 			// select one job
 			job := pendingJobs.Pop().(*api.JobInfo)
