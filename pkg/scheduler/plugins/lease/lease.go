@@ -247,6 +247,10 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 				userJobMap[job.Queue] = schedulerutil.NewPriorityQueue(ssn.JobOrderFn)
 			}
 			userJobMap[job.Queue].Push(job)
+			// consider renewing job resource as free resource
+			if isJobRenewing(job) {
+				totalFreeGPU += getJobGPUReq(job)
+			}
 		}
 
 		// update queue information: allocated & request
