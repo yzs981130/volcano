@@ -164,6 +164,10 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			jAttr.utilized += getJobGPUReq(job) * leaseTerm
 			lp.updateUserFairness(qAttr)
 			lp.updateJobFairness(jAttr)
+			// update queue quota usage
+			for _, task := range job.Tasks {
+				qAttr.allocated.Add(task.Resreq)
+			}
 		},
 		DeallocateJobFunc: func(event *framework.Event) {
 			job := event.Job
@@ -172,6 +176,10 @@ func (lp *leasePlugin) OnSessionOpen(ssn *framework.Session) {
 			jAttr.utilized -= getJobGPUReq(job) * leaseTerm
 			lp.updateUserFairness(qAttr)
 			lp.updateJobFairness(jAttr)
+			// update queue quota usage
+			for _, task := range job.Tasks {
+				qAttr.allocated.Sub(task.Resreq)
+			}
 		},
 	})
 
