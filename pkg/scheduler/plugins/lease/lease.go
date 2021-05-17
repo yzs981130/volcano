@@ -372,6 +372,9 @@ func isJobRenewing(job *api.JobInfo) bool {
 // to skip finished job in ssn.Jobs
 // TODO: check
 func isFinishedJob(job *api.JobInfo) bool {
+	if len(job.TaskStatusIndex) == 0 {
+		return false
+	}
 	for status := range job.TaskStatusIndex {
 		if !(status == api.Succeeded || status == api.Failed) {
 			return false
