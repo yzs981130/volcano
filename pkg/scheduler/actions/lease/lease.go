@@ -148,17 +148,22 @@ func (la *Action) Execute(ssn *framework.Session) {
 		// set resource occupied by renewing job to free
 		for _, job := range renewingJobList {
 			reclaimJobResource(ssn, job)
-			// update queue quota usage (in deallocateJobFn)
-			ssn.DeallocateJob(job)
 		}
 		allocatedJobList := la.scheduling(ssn, queueInNamespace, allNodes, predicateFn, renewalFilter)
 		// restore former resource and job status
-		// update queue quota usage (in deallocateJobFn)
+		// we only consider restore queue quota usage here, because it is recorded in plugin, other resource and status
+		// in session should be restored by ssn.RestoreLastSnapshot()
+		// the queue quota is modified by stmt.Allocate in la.scheduling
 		for _, job := range allocatedJobList {
-			ssn.DeallocateJob(job)
+			for _, task := range job.Tasks {
+				ssn.DeallocateCallback(task)
+			}
 		}
+		// restore queue quota modified by reclaimJobResource
 		for _, job := range renewingJobList {
-			ssn.AllocateJob(job)
+			for _, task := range job.Tasks {
+				ssn.AllocateCallback(task)
+			}
 		}
 		// RestoreLastSnapshot only considers ssn.Node/Jobs/Queues information
 		ssn.RestoreLastSnapshot()
@@ -379,6 +384,8 @@ func reclaimJobResource(ssn *framework.Session, job *api.JobInfo) {
 			}
 		}
 		task.NodeName = ""
+		// update queue quota usage
+		ssn.DeallocateCallback(task)
 	}
 }
 

@@ -520,3 +520,25 @@ func (ssn *Session) DeallocateJob(job *api.JobInfo) {
 		}
 	}
 }
+
+// AllocateCallback is a virtual func to call handler in plugin when a job is allocated
+func (ssn *Session) AllocateCallback(task *api.TaskInfo) {
+	for _, eh := range ssn.eventHandlers {
+		if eh.AllocateFunc != nil {
+			eh.AllocateFunc(&Event{
+				Task: task,
+			})
+		}
+	}
+}
+
+// DeallocateCallback is a virtual func to call handler in plugin when a job is deallocated
+func (ssn *Session) DeallocateCallback(task *api.TaskInfo) {
+	for _, eh := range ssn.eventHandlers {
+		if eh.DeallocateFunc != nil {
+			eh.DeallocateFunc(&Event{
+				Task: task,
+			})
+		}
+	}
+}
